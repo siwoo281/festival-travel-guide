@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API 통합 테스트</h1>
+    
+    <div class="test-box">
+        <h3>1️⃣ 스크립트 로드 확인</h3>
+        <div id="script-test"></div>
+    </div>
+    
+    <div class="test-box">
+        <h3>2️⃣ festivalsData 확인</h3>
+        <div id="data-test"></div>
+    </div>
+    
+    <div class="test-box">
+        <h3>3️⃣ 환율 API 테스트</h3>
+        <div id="rate-test"></div>
+    </div>
+    
+    <div class="test-box">
+        <h3>4️⃣ 국기 이미지 테스트</h3>
+        <div id="flag-test"></div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script src="api-integration.js"></script>
+    <script>
+        // 1. 스크립트 로드 확인
+        const scriptTest = document.getElementById('script-test');
+        if (typeof festivalsData !== 'undefined') {
+            scriptTest.innerHTML = '<span class="success">✅ script.js 로드 성공</span>';
+        } else {
+            scriptTest.innerHTML = '<span class="error">❌ script.js 로드 실패</span>';
+        }
+        
+        if (typeof festivalLocationInfo !== 'undefined') {
+            scriptTest.innerHTML += '<br><span class="success">✅ api-integration.js 로드 성공</span>';
+        } else {
+            scriptTest.innerHTML += '<br><span class="error">❌ api-integration.js 로드 실패</span>';
+        }
+        
+        // 2. festivalsData 확인
+        const dataTest = document.getElementById('data-test');
+        if (typeof festivalsData !== 'undefined') {
+            const festivals = Object.keys(festivalsData);
+            dataTest.innerHTML = `
+                <span class="success">✅ 축제 데이터: ${festivals.length}개</span><br>
+                <span class="info">📋 ${festivals.join(', ')}</span>
+            `;
+        } else {
+            dataTest.innerHTML = '<span class="error">❌ festivalsData 없음</span>';
+        }
+        
+        // 3. 환율 API 테스트
+        const rateTest = document.getElementById('rate-test');
+        rateTest.innerHTML = '<span class="info">⏳ 테스트 중...</span>';
+        
+        getExchangeRates().then(rates => {
+            if (rates) {
+                rateTest.innerHTML = `
+                    <span class="success">✅ 환율 API 성공</span><br>
+                    <span class="info">EUR: ${rates.EUR ? rates.EUR.toFixed(6) : 'N/A'}</span><br>
+                    <span class="info">BRL: ${rates.BRL ? rates.BRL.toFixed(6) : 'N/A'}</span>
+                `;
+            } else {
+                rateTest.innerHTML = '<span class="error">❌ 환율 API 실패</span>';
+            }
+        });
+        
+        // 4. 국기 이미지 테스트
+        const flagTest = document.getElementById('flag-test');
+        const flags = [
+            { code: 'es', name: '스페인' },
+            { code: 'de', name: '독일' },
+            { code: 'br', name: '브라질' }
+        ];
+        
+        flagTest.innerHTML = flags.map(flag => 
+            `<img src="https://flagcdn.com/w80/${flag.code}.png" alt="${flag.name}" style="width: 60px; margin: 5px;"> ${flag.name}`
+        ).join('<br>');
+    </script>
+</body>
+</html>

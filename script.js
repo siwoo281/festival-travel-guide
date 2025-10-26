@@ -5,6 +5,7 @@ const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
 const festivalsData = {
     tomatina: {
         id: 'tomatina',
+        countryCode: "es",
         name: '라 토마티나',
         location: '스페인 발렌시아 부뇰',
         period: '매년 8월 마지막 수요일',
@@ -78,6 +79,7 @@ const festivalsData = {
     },
     oktoberfest: {
         id: 'oktoberfest',
+        countryCode: "de",
         name: '옥토버페스트',
         location: '독일 뮌헨',
         period: '9월 말 - 10월 초 (약 16-18일)',
@@ -151,6 +153,7 @@ const festivalsData = {
     },
     carnival: {
         id: 'carnival',
+        countryCode: "br",
         name: '리우 카니발',
         location: '브라질 리우데자네이루',
         period: '매년 2월 (사순절 시작 전)',

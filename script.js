@@ -287,10 +287,28 @@ async function fetchImageFromUnsplash(keyword, size = 'regular') {
 
 // ===== 플레이스홀더 이미지 생성 (API 키가 없을 때 사용) =====
 function getPlaceholderImage(keyword) {
-    // Unsplash Source를 사용한 랜덤 이미지 (API 키 불필요)
-    // 또는 Lorem Picsum 사용
-    const keywords = keyword.split(' ').slice(0, 2).join(',');
-    return `https://source.unsplash.com/1600x900/?${keywords}`;
+    // 고정 이미지 URL 사용 (더 안정적)
+    const imageMap = {
+        'La Tomatina festival Spain': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&h=900&fit=crop',
+        'Munich Oktoberfest Germany': 'https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=1600&h=900&fit=crop',
+        'Rio Carnival Brazil': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=900&fit=crop',
+        'Bunol Castle Spain': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&h=600&fit=crop',
+        'Valencia old town Spain': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
+        'City of Arts and Sciences Valencia': 'https://images.unsplash.com/photo-1562883676-8c7feb83f09b?w=800&h=600&fit=crop',
+        'Malvarrosa beach Valencia': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop',
+        'Theresienwiese Oktoberfest Munich': 'https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=800&h=600&fit=crop',
+        'Marienplatz Munich': 'https://images.unsplash.com/photo-1595867818082-083862f3d630?w=800&h=600&fit=crop',
+        'Neuschwanstein Castle Germany': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&h=600&fit=crop',
+        'BMW Museum Munich': 'https://images.unsplash.com/photo-1556195023-d5d7bf52a3f7?w=800&h=600&fit=crop',
+        'Sambadrome Rio de Janeiro': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=600&fit=crop',
+        'Copacabana beach Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
+        'Christ the Redeemer Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
+        'Sugarloaf Mountain Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
+        'Selaron Steps Rio': 'https://images.unsplash.com/photo-1516826957135-700dedea698c?w=800&h=600&fit=crop',
+        'Ipanema beach Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop'
+    };
+    
+    return imageMap[keyword] || `https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&h=900&fit=crop&q=80&${Math.random()}`;
 }
 
 // ===== 페이지 로드 시 초기화 =====

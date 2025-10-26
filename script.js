@@ -237,7 +237,7 @@ const festivalsData = {
 // ===== Unsplash API 설정 =====
 // 실제 사용 시에는 본인의 Unsplash API Key를 발급받아 사용하세요
 // https://unsplash.com/developers 에서 무료로 발급 가능
-const UNSPLASH_ACCESS_KEY = 'YOUR_UNSPLASH_ACCESS_KEY_HERE';
+const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
 const UNSPLASH_API_URL = 'https://api.unsplash.com/search/photos';
 
 // ===== 이미지 캐시 저장소 =====

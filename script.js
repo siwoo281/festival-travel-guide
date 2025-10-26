@@ -234,6 +234,183 @@ const festivalsData = {
     }
 };
 
+
+// ===== 상품 개발 배경 및 시장 분석 데이터 =====
+const marketAnalysis = {
+    developmentReason: {
+        title: '해외 축제 관광상품 개발 이유',
+        trends: [
+            {
+                icon: 'fa-chart-line',
+                title: '체험형 관광 수요 증가',
+                description: 'MZ세대를 중심으로 SNS 인증샷, 특별한 경험을 중시하는 체험형 관광 수요가 연평균 25% 증가'
+            },
+            {
+                icon: 'fa-users',
+                title: '타겟층 명확한 니치 시장',
+                description: '축제 중심 패키지는 20-40대 젊은층의 구매력과 여행 선호도가 높아 효과적인 마케팅 가능'
+            },
+            {
+                icon: 'fa-globe',
+                title: '차별화된 상품 경쟁력',
+                description: '일반 유럽/남미 패키지와 달리 축제 시즌에 맞춘 테마 상품으로 높은 프리미엄 가격 책정 가능'
+            },
+            {
+                icon: 'fa-calendar-check',
+                title: '시즌성을 활용한 수익 극대화',
+                description: '축제 특정 기간에 집중 판매로 성수기 매출 확보 및 연간 매출 안정화'
+            }
+        ],
+        targetJustification: {
+            primary: {
+                segment: '대학생 및 직장 초년생 (20-30대)',
+                reason: 'SNS 활동 활발, 새로운 경험 추구, 친구들과의 추억 만들기 중시',
+                marketSize: '연간 약 50만명 (해외여행 시장의 15%)',
+                averageSpend: '250만원'
+            },
+            secondary: {
+                segment: '직장인 및 신혼부부 (30-40대)',
+                reason: '여유로운 소득, 품질 중시, 문화체험 선호',
+                marketSize: '연간 약 30만명',
+                averageSpend: '350만원'
+            }
+        },
+        competitiveAdvantage: [
+            '축제 현장 분위기와 관광을 동시에 즐길 수 있는 복합 상품',
+            '각 축제별 최적화된 일정 및 숙소 배치',
+            '현지 가이드와 함께하는 안전하고 편리한 여행',
+            '단체 할인을 통한 가격 경쟁력'
+        ]
+    },
+    
+    profitability: {
+        tomatina: {
+            productCode: 'FEST-ES-001',
+            productName: '열정의 토마토 축제 5일',
+            costStructure: {
+                airfare: 1100000,      // 원가
+                accommodation: 350000,
+                meals: 200000,
+                admission: 40000,
+                guide: 150000,
+                insurance: 50000,
+                margin: 310000         // 마진
+            },
+            sellingPrice: 2200000,
+            costPrice: 1890000,
+            marginRate: 14.1,          // 마진율 %
+            breakEvenUnits: 15,        // 손익분기점 인원
+            expectedUnits: {
+                monthly: 40,           // 월 예상 인원 (8월 집중)
+                quarterly: 80,
+                annual: 120
+            },
+            revenue: {
+                monthly: 88000000,     // 월 예상 매출
+                quarterly: 176000000,
+                annual: 264000000
+            },
+            profit: {
+                monthly: 12400000,     // 월 예상 수익
+                quarterly: 24800000,
+                annual: 37200000
+            }
+        },
+        oktoberfest: {
+            productCode: 'FEST-DE-002',
+            productName: '뮌헨 맥주 축제 6일',
+            costStructure: {
+                airfare: 1300000,
+                accommodation: 500000,
+                meals: 280000,
+                admission: 0,
+                guide: 180000,
+                insurance: 60000,
+                margin: 480000
+            },
+            sellingPrice: 2800000,
+            costPrice: 2320000,
+            marginRate: 17.1,
+            breakEvenUnits: 12,
+            expectedUnits: {
+                monthly: 60,
+                quarterly: 120,
+                annual: 180
+            },
+            revenue: {
+                monthly: 168000000,
+                quarterly: 336000000,
+                annual: 504000000
+            },
+            profit: {
+                monthly: 28800000,
+                quarterly: 57600000,
+                annual: 86400000
+            }
+        },
+        carnival: {
+            productCode: 'FEST-BR-003',
+            productName: '리우 삼바 카니발 7일',
+            costStructure: {
+                airfare: 1650000,
+                accommodation: 700000,
+                meals: 350000,
+                admission: 250000,
+                guide: 200000,
+                insurance: 70000,
+                margin: 780000
+            },
+            sellingPrice: 3500000,
+            costPrice: 3220000,
+            marginRate: 22.3,
+            breakEvenUnits: 10,
+            expectedUnits: {
+                monthly: 35,
+                quarterly: 70,
+                annual: 105
+            },
+            revenue: {
+                monthly: 122500000,
+                quarterly: 245000000,
+                annual: 367500000
+            },
+            profit: {
+                monthly: 27300000,
+                quarterly: 54600000,
+                annual: 81900000
+            }
+        },
+        total: {
+            annualRevenue: 1135500000,     // 총 연간 매출
+            annualProfit: 205500000,        // 총 연간 수익
+            averageMarginRate: 18.1,        // 평균 마진율
+            totalExpectedCustomers: 405     // 총 예상 고객 수
+        }
+    },
+    
+    expectedEffects: {
+        financial: {
+            firstYearRevenue: 1135500000,
+            firstYearProfit: 205500000,
+            secondYearGrowth: 30,          // 2년차 성장률 %
+            thirdYearGrowth: 50            // 3년차 누적 성장률 %
+        },
+        marketing: {
+            brandAwareness: '축제 전문 여행사 이미지 구축',
+            customerRetention: '재방문율 40% 이상 목표',
+            wordOfMouth: 'SNS 바이럴 마케팅 효과',
+            mediaExposure: '여행 전문 매체 및 블로거 협업'
+        },
+        strategic: {
+            portfolioDiversification: '계절별 상품 라인업 확대',
+            b2bOpportunities: '대학교, 기업 단체 여행 수주',
+            futureExpansion: '아시아 축제(홀리, 송크란 등) 확장 계획',
+            partnershipBuilding: '현지 여행사 및 호텔 장기 계약'
+        }
+    }
+};
+
+
 // ===== Unsplash API 설정 =====
 // 실제 사용 시에는 본인의 Unsplash API Key를 발급받아 사용하세요
 // https://unsplash.com/developers 에서 무료로 발급 가능

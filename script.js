@@ -327,25 +327,38 @@ const expectedEffects = {
 
 // ===== 페이지 로드 시 초기화 =====
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎉 페이지 로드 완료!');
+    console.log('festivalsData:', Object.keys(festivalsData));
     loadFestivalCards();
     setupModalHandlers();
+    console.log('✅ 초기화 완료!');
 });
 
 // ===== 축제 카드 로딩 =====
 async function loadFestivalCards() {
+    console.log('🔍 카드 로딩 시작...');
     const container = document.getElementById('festivalCards');
-    if (!container) return;
-
+    
+    if (!container) {
+        console.error('❌ festivalCards 컨테이너를 찾을 수 없습니다!');
+        return;
+    }
+    
+    console.log('✅ 컨테이너 찾음:', container);
     container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
 
     try {
+        let count = 0;
         for (const [key, festival] of Object.entries(festivalsData)) {
+            console.log(`📝 카드 생성 중: ${festival.name}`);
             const imageUrl = await fetchUnsplashImage(festival.imageQuery, festival.fallbackImage);
             const card = createFestivalCard(festival, imageUrl);
             container.insertAdjacentHTML('beforeend', card);
+            count++;
         }
+        console.log(`✅ ${count}개 카드 생성 완료!`);
     } catch (error) {
-        console.error('Error loading festivals:', error);
+        console.error('❌ 카드 로딩 에러:', error);
         container.innerHTML = '<div class="col-12 text-center text-danger">축제 정보를 불러올 수 없습니다.</div>';
     }
 }
@@ -408,8 +421,13 @@ function setupModalHandlers() {
 
 // ===== 축제 상세 정보 표시 =====
 async function showFestivalDetail(festivalId) {
+    console.log('🎯 클릭됨! 축제 ID:', festivalId);
     const festival = festivalsData[festivalId];
-    if (!festival) return;
+    if (!festival) {
+        console.error('❌ 축제를 찾을 수 없습니다:', festivalId);
+        return;
+    }
+    console.log('✅ 축제 정보:', festival.name);
 
     // 모달 제목 및 기본 정보 설정
     document.getElementById('festivalModalLabel').textContent = festival.name;

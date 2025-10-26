@@ -348,6 +348,9 @@ async function loadFestivalCards() {
     container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
 
     try {
+        // 먼저 로딩 스피너 제거
+        container.innerHTML = '';
+        
         let count = 0;
         for (const [key, festival] of Object.entries(festivalsData)) {
             console.log(`📝 카드 생성 중: ${festival.name}`);
@@ -366,16 +369,23 @@ async function loadFestivalCards() {
 // ===== Unsplash 이미지 가져오기 =====
 async function fetchUnsplashImage(query, fallback) {
     try {
+        // 3초 타임아웃 설정
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
         const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`
+            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`,
+            { signal: controller.signal }
         );
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) throw new Error('API request failed');
         
         const data = await response.json();
         return data.results[0]?.urls?.regular || fallback;
     } catch (error) {
-        console.error('Unsplash API error:', error);
+        console.log('⚠️ Unsplash API 실패, fallback 이미지 사용:', error.message);
         return fallback;
     }
 }
@@ -481,7 +491,7 @@ function displayBudgetChart(budget, totalPrice) {
     if (!ctx) return;
 
     // 기존 차트 제거
-    if (window.budgetChart) {
+    if (window.budgetChart && typeof window.budgetChart.destroy === 'function') {
         window.budgetChart.destroy();
     }
 

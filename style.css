@@ -1270,3 +1270,50 @@ h1, h2, h3, h4 {
         padding: 1.5rem;
     }
 }
+
+/* ===== API 통합 스타일 ===== */
+.festival-card {
+    position: relative;
+}
+
+.festival-flag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 45px;
+    height: auto;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.festival-weather {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 10;
+    backdrop-filter: blur(5px);
+}
+
+.festival-image {
+    position: relative;
+}
+
+.festival-local-price {
+    font-size: 13px;
+    color: #666;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.festival-local-price i {
+    color: #28a745;
+    margin-right: 5px;
+}

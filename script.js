@@ -941,3 +941,37 @@ function displayPackageInfo(packageDetails) {
     document.getElementById('packageCode').textContent = packageDetails.productCode;
 }
 
+
+// 예약 폼 핸들링
+document.addEventListener('DOMContentLoaded', function() {
+    const reservationForm = document.getElementById('reservationForm');
+    
+    if (reservationForm) {
+        reservationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 폼 데이터 수집
+            const formData = new FormData(this);
+            
+            // 성공 메시지 표시
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success mt-3';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>문의가 접수되었습니다!</strong> 
+                빠른 시일 내에 담당자가 연락드리겠습니다.
+            `;
+            
+            this.insertAdjacentElement('afterend', alert);
+            this.reset();
+            
+            // 3초 후 메시지 제거
+            setTimeout(() => alert.remove(), 5000);
+            
+            // 페이지 상단으로 스크롤
+            setTimeout(() => {
+                alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        });
+    }
+});

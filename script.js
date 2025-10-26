@@ -1,4 +1,66 @@
-// ===== 축제 데이터 정의 =====
+
+    packageDetails: {
+        included: [
+            '왕복 항공권 (인천-상파울루-리우, 이코노미석)',
+            '4성급 호텔 6박 (조식 포함)',
+            '카니발 퍼레이드 지정석 입장권',
+            '삼바드롬 VIP 구역 2일권',
+            '코르코바도 예수상 투어',
+            '슈가로프 마운틴 케이블카',
+            '이파네마 비치 선셋 크루즈',
+            '여행자 보험',
+            '한국인 가이드'
+        ],
+        excluded: [
+            '개인 경비 및 쇼핑 비용',
+            '선택 관광 프로그램',
+            '추가 식사 및 음료',
+            '카니발 의상 대여',
+            '호텔 미니바',
+            '여권 및 비자 발급 비용'
+        ],
+        productCode: 'FEST-BR-003',
+        departureDates: [
+            '2026년 2월 12일 (목)',
+            '2026년 2월 14일 (토)',
+            '2026년 2월 16일 (월)'
+        ],
+        groupDiscount: {
+            '4-6명': '1인당 70,000원 할인',
+            '7-9명': '1인당 100,000원 할인',
+            '10명 이상': '1인당 150,000원 할인'
+        }
+    },
+    packageDetails: {
+        included: [
+            '왕복 항공권 (인천-뮌헨, 이코노미석)',
+            '5성급 호텔 5박 (조식 포함)',
+            '옥토버페스트 입장권 2회',
+            '맥주 텐트 예약석 & 맥주 2리터 쿠폰',
+            '뮌헨 시내 가이드 투어',
+            '노이슈반슈타인 성 당일 투어',
+            '여행자 보험',
+            '한국인 가이드'
+        ],
+        excluded: [
+            '개인 경비 및 쇼핑 비용',
+            '선택 관광 프로그램',
+            '추가 맥주 및 식사',
+            '호텔 미니바 및 룸서비스',
+            '여권 발급 비용'
+        ],
+        productCode: 'FEST-DE-002',
+        departureDates: [
+            '2025년 9월 18일 (목)',
+            '2025년 9월 25일 (목)',
+            '2025년 10월 2일 (목)'
+        ],
+        groupDiscount: {
+            '4-6명': '1인당 50,000원 할인',
+            '7-9명': '1인당 80,000원 할인',
+            '10명 이상': '1인당 100,000원 할인'
+        }
+    },// ===== 축제 데이터 정의 =====
 const festivalsData = {
     tomatina: {
         id: 'tomatina',
@@ -845,3 +907,37 @@ document.addEventListener('error', function(e) {
 console.log('%c🎉 Festival Travel Guide', 'color: #667eea; font-size: 24px; font-weight: bold;');
 console.log('%cUnsplash API를 사용하려면 script.js 파일의 UNSPLASH_ACCESS_KEY를 설정하세요.', 'color: #666; font-size: 14px;');
 console.log('%chttps://unsplash.com/developers 에서 무료로 발급받을 수 있습니다.', 'color: #666; font-size: 14px;');
+
+// 패키지 정보 표시
+function displayPackageInfo(packageDetails) {
+    // 포함 사항
+    const includedList = document.getElementById('packageIncluded');
+    includedList.innerHTML = packageDetails.included.map(item => 
+        `<li><i class="fas fa-check text-success"></i> ${item}</li>`
+    ).join('');
+    
+    // 불포함 사항
+    const excludedList = document.getElementById('packageExcluded');
+    excludedList.innerHTML = packageDetails.excluded.map(item => 
+        `<li><i class="fas fa-times text-danger"></i> ${item}</li>`
+    ).join('');
+    
+    // 출발 일정
+    const datesList = document.getElementById('packageDates');
+    datesList.innerHTML = packageDetails.departureDates.map(date => 
+        `<li><i class="fas fa-plane-departure text-info"></i> ${date}</li>`
+    ).join('');
+    
+    // 단체 할인
+    const discountDiv = document.getElementById('packageDiscount');
+    discountDiv.innerHTML = Object.entries(packageDetails.groupDiscount).map(([people, discount]) => 
+        `<div class="discount-item">
+            <span class="badge bg-warning text-dark">${people}</span> 
+            <span class="text-success fw-bold">${discount}</span>
+        </div>`
+    ).join('');
+    
+    // 상품 코드
+    document.getElementById('packageCode').textContent = packageDetails.productCode;
+}
+

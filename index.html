@@ -26,6 +26,7 @@
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"><a class="nav-link" href="#festivals">축제</a></li>
+                            <li class="nav-item"><a class="nav-link" href="business-analysis.html">사업 분석</a></li>
                             <li class="nav-item"><a class="nav-link" href="#about">소개</a></li>
                             <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
                         </ul>
@@ -134,6 +135,33 @@
                                 <div class="map-card">
                                     <h3>위치</h3>
                                     <div id="detailMap" class="map-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 패키지 정보 탭 -->
+                    <div class="tab-pane fade" id="package" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <h3><i class="fas fa-check-circle text-success"></i> 포함 사항</h3>
+                                    <ul id="packageIncluded" class="package-list"></ul>
+                                </div>
+                                <div class="info-card mt-3">
+                                    <h3><i class="fas fa-calendar-alt text-info"></i> 출발 일정</h3>
+                                    <ul id="packageDates" class="package-list"></ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <h3><i class="fas fa-times-circle text-danger"></i> 불포함 사항</h3>
+                                    <ul id="packageExcluded" class="package-list"></ul>
+                                </div>
+                                <div class="info-card mt-3">
+                                    <h3><i class="fas fa-users text-warning"></i> 단체 할인</h3>
+                                    <div id="packageDiscount"></div>
+                                    <p class="mt-3"><strong>상품코드:</strong> <span id="packageCode" class="badge bg-primary"></span></p>
                                 </div>
                             </div>
                         </div>

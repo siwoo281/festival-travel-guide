@@ -1,5 +1,5 @@
 // ===== API 통합 기능 =====
-// 이 파일을 index.html에서 script.js 다음에 로드하세요
+console.log('🚀 API 통합 스크립트 로드됨');
 
 const EXCHANGERATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/KRW';
 
@@ -27,6 +27,7 @@ async function getExchangeRates() {
         if (!response.ok) throw new Error('환율 정보 가져오기 실패');
         const data = await response.json();
         exchangeRates = data.rates;
+        console.log('💰 환율 정보 로드 성공');
         return exchangeRates;
     } catch (error) {
         console.log('⚠️ 환율 정보 로드 실패:', error.message);
@@ -43,22 +44,38 @@ function convertToLocalCurrency(krwPrice, rate) {
 
 // 카드에 API 정보 추가
 async function enhanceFestivalCards() {
-    console.log('🎨 API 정보로 카드 강화 중...');
+    console.log('🎨 API 정보로 카드 강화 시작...');
+    
+    const festivalCardsDiv = document.querySelectorAll('.festival-card');
+    console.log('📦 발견된 카드 수:', festivalCardsDiv.length);
+    
+    if (festivalCardsDiv.length === 0) {
+        console.error('❌ 카드를 찾을 수 없습니다!');
+        return;
+    }
     
     const rates = await getExchangeRates();
+    console.log('💰 환율 정보:', rates ? '✅ 로드됨' : '❌ 실패');
     
-    const cards = document.querySelectorAll('.festival-card');
-    cards.forEach((card, index) => {
+    festivalCardsDiv.forEach((card, index) => {
         const festivalIds = ['tomatina', 'oktoberfest', 'carnival'];
         const festivalId = festivalIds[index];
         
-        if (!festivalId) return;
+        if (!festivalId) {
+            console.log(`⚠️ 카드 ${index}: festivalId 없음`);
+            return;
+        }
         
         const locationInfo = festivalLocationInfo[festivalId];
         const weatherInfo = mockWeatherData[festivalId];
         const festival = festivalsData[festivalId];
         
-        if (!locationInfo || !festival) return;
+        if (!locationInfo || !festival) {
+            console.log(`⚠️ 카드 ${index}: 정보 없음`);
+            return;
+        }
+        
+        console.log(`✨ 카드 ${index} (${festival.name}) 강화 중...`);
         
         // 국기 추가
         const flagImg = document.createElement('img');
@@ -68,7 +85,9 @@ async function enhanceFestivalCards() {
         
         const imageDiv = card.querySelector('.festival-image');
         if (imageDiv) {
+            imageDiv.style.position = 'relative';
             imageDiv.appendChild(flagImg);
+            console.log(`  🚩 국기 추가: ${locationInfo.countryCode}`);
             
             // 날씨 정보 추가
             if (weatherInfo) {
@@ -76,7 +95,10 @@ async function enhanceFestivalCards() {
                 weatherDiv.className = 'festival-weather';
                 weatherDiv.innerHTML = `${weatherInfo.icon} ${weatherInfo.temp}°C`;
                 imageDiv.appendChild(weatherDiv);
+                console.log(`  🌤️ 날씨 추가: ${weatherInfo.temp}°C`);
             }
+        } else {
+            console.log(`  ❌ 이미지 div 없음`);
         }
         
         // 현지 통화 가격 추가
@@ -86,8 +108,11 @@ async function enhanceFestivalCards() {
                 const localPrice = convertToLocalCurrency(festival.price, rates[locationInfo.currency]);
                 const localPriceDiv = document.createElement('div');
                 localPriceDiv.className = 'festival-local-price';
-                localPriceDiv.innerHTML = `<i class="fas fa-exchange-alt"></i>약 ${localPrice} ${locationInfo.currencySymbol}`;
-                priceElement.parentNode.appendChild(localPriceDiv);
+                localPriceDiv.innerHTML = `<i class="fas fa-exchange-alt"></i> 약 ${localPrice} ${locationInfo.currencySymbol}`;
+                priceElement.parentNode.insertBefore(localPriceDiv, priceElement.nextSibling);
+                console.log(`  💰 환율 추가: ${localPrice} ${locationInfo.currencySymbol}`);
+            } else {
+                console.log(`  ❌ 가격 요소 없음`);
             }
         }
     });
@@ -95,11 +120,10 @@ async function enhanceFestivalCards() {
     console.log('✅ API 정보 추가 완료!');
 }
 
-// 기존 loadFestivalCards 완료 후 실행
-const originalDOMContentLoaded = window.addEventListener;
-window.addEventListener('DOMContentLoaded', async function() {
-    // 카드 로딩 대기
-    setTimeout(async () => {
-        await enhanceFestivalCards();
-    }, 2000); // 2초 후 실행 (Unsplash 이미지 로딩 대기)
-});
+// 페이지 로드 완료 후 API 정보 추가
+console.log('⏰ 타이머 설정: 3초 후 API 정보 추가');
+
+setTimeout(async () => {
+    console.log('⏰ 타이머 실행됨!');
+    await enhanceFestivalCards();
+}, 3000);

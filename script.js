@@ -1,306 +1,234 @@
+// ===== Unsplash API 설정 =====
+const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
 
-    packageDetails: {
-        included: [
-            '왕복 항공권 (인천-상파울루-리우, 이코노미석)',
-            '4성급 호텔 6박 (조식 포함)',
-            '카니발 퍼레이드 지정석 입장권',
-            '삼바드롬 VIP 구역 2일권',
-            '코르코바도 예수상 투어',
-            '슈가로프 마운틴 케이블카',
-            '이파네마 비치 선셋 크루즈',
-            '여행자 보험',
-            '한국인 가이드'
-        ],
-        excluded: [
-            '개인 경비 및 쇼핑 비용',
-            '선택 관광 프로그램',
-            '추가 식사 및 음료',
-            '카니발 의상 대여',
-            '호텔 미니바',
-            '여권 및 비자 발급 비용'
-        ],
-        productCode: 'FEST-BR-003',
-        departureDates: [
-            '2026년 2월 12일 (목)',
-            '2026년 2월 14일 (토)',
-            '2026년 2월 16일 (월)'
-        ],
-        groupDiscount: {
-            '4-6명': '1인당 70,000원 할인',
-            '7-9명': '1인당 100,000원 할인',
-            '10명 이상': '1인당 150,000원 할인'
-        }
-    },
-    packageDetails: {
-        included: [
-            '왕복 항공권 (인천-뮌헨, 이코노미석)',
-            '5성급 호텔 5박 (조식 포함)',
-            '옥토버페스트 입장권 2회',
-            '맥주 텐트 예약석 & 맥주 2리터 쿠폰',
-            '뮌헨 시내 가이드 투어',
-            '노이슈반슈타인 성 당일 투어',
-            '여행자 보험',
-            '한국인 가이드'
-        ],
-        excluded: [
-            '개인 경비 및 쇼핑 비용',
-            '선택 관광 프로그램',
-            '추가 맥주 및 식사',
-            '호텔 미니바 및 룸서비스',
-            '여권 발급 비용'
-        ],
-        productCode: 'FEST-DE-002',
-        departureDates: [
-            '2025년 9월 18일 (목)',
-            '2025년 9월 25일 (목)',
-            '2025년 10월 2일 (목)'
-        ],
-        groupDiscount: {
-            '4-6명': '1인당 50,000원 할인',
-            '7-9명': '1인당 80,000원 할인',
-            '10명 이상': '1인당 100,000원 할인'
-        }
-    },// ===== 축제 데이터 정의 =====
+// ===== 축제 데이터 정의 =====
 const festivalsData = {
     tomatina: {
         id: 'tomatina',
-        name: 'La Tomatina',
-        nameKo: '라 토마티나',
-        location: '부뇰, 스페인',
-        country: 'Spain',
+        name: '라 토마티나',
+        location: '스페인 발렌시아 부뇰',
         period: '매년 8월 마지막 수요일',
-        description: '세계에서 가장 큰 토마토 축제로, 수천 명의 참가자들이 거리에서 토마토를 던지며 즐기는 스페인의 대표 축제입니다.',
-        targetAudience: '대학생, 친구 그룹, 모험을 좋아하는 청년층',
-        totalBudget: 2200000,
-        imageKeyword: 'La Tomatina festival Spain',
-        mapEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d48795.89407596485!2d-0.7897598!3d39.4185064!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd604f11a8461515%3A0x402b1f4a30196e0!2sBu%C3%B1ol%2C%20Valencia%2C%20Spain!5e0!3m2!1sen!2skr!4v1635000000000!5m2!1sen!2skr',
-        
-        budget: {
-            flight: { label: '항공권 (왕복)', amount: 1200000, icon: 'fa-plane' },
-            accommodation: { label: '숙박 (5박)', amount: 400000, icon: 'fa-hotel' },
-            food: { label: '식비', amount: 300000, icon: 'fa-utensils' },
-            festival: { label: '축제 입장료', amount: 50000, icon: 'fa-ticket-alt' },
-            transportation: { label: '현지 교통', amount: 150000, icon: 'fa-bus' },
-            misc: { label: '기타 경비', amount: 100000, icon: 'fa-shopping-bag' }
-        },
-        
+        duration: '5일',
+        price: '₩2,200,000',
+        target: '20-30대 젊은 여행객',
+        description: '세계에서 가장 큰 토마토 축제! 수만 명이 거리에서 토마토를 던지며 즐기는 독특한 스페인 전통 축제입니다.',
+        mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3078.7285894982576!2d-0.7889!3d39.4167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd604f4cf0efb06f%3A0x40640856e73be20!2sBu%C3%B1ol%2C%20Valencia%2C%20Spain!5e0!3m2!1sen!2skr!4v1234567890',
+        imageQuery: 'la tomatina festival spain',
+        fallbackImage: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800',
         attractions: [
             {
-                name: '부뇰 성 (Castillo de Buñol)',
-                location: '부뇰 시내',
-                description: '11세기에 지어진 중세 성곽으로, 토마티나 축제의 역사적 배경이 되는 장소입니다. 성벽에서 바라보는 부뇰 마을 전경이 아름답습니다.',
-                course: '1일차',
-                imageKeyword: 'Bunol Castle Spain'
+                name: '라 토마티나 축제',
+                description: '수만 명이 참가하는 토마토 던지기 축제',
+                image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600'
             },
             {
                 name: '발렌시아 구시가지',
-                location: '발렌시아',
-                description: '부뇰에서 약 40km 떨어진 발렌시아는 파에야의 본고장입니다. 중앙시장, 대성당, 실크거래소 등 볼거리가 풍부합니다.',
-                course: '2일차',
-                imageKeyword: 'Valencia old town Spain'
+                description: '중세 시대 건축물과 성당',
+                image: 'https://images.unsplash.com/photo-1562883676-8c7feb83f09b?w=600'
             },
             {
-                name: '예술과학의 도시',
-                location: '발렌시아',
-                description: '산티아고 칼라트라바가 설계한 미래지향적 건축물 단지로, 과학박물관, 수족관, 오페라하우스 등이 있습니다.',
-                course: '3일차',
-                imageKeyword: 'City of Arts and Sciences Valencia'
-            },
-            {
-                name: '말바로사 해변',
-                location: '발렌시아',
-                description: '발렌시아의 아름다운 지중해 해변으로, 축제 후 휴식을 취하기에 완벽한 장소입니다. 해변 레스토랑에서 신선한 해산물을 즐길 수 있습니다.',
-                course: '4일차',
-                imageKeyword: 'Malvarrosa beach Valencia'
+                name: '알부페라 국립공원',
+                description: '아름다운 석호와 쌀 재배 지역',
+                image: 'https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=600'
             }
         ],
-        
-        tips: [
-            '오래된 옷과 신발을 준비하세요. 토마토 얼룩은 잘 지워지지 않습니다.',
-            '고글이나 수경을 착용하면 눈을 보호할 수 있습니다.',
-            '방수 케이스에 귀중품을 보관하세요.',
-            '축제는 1시간 정도 진행되며, 오전 11시에 시작합니다.',
-            '축제 전날 부뇰에 도착하는 것을 추천합니다.',
-            '여벌 옷을 가져가서 축제 후 갈아입으세요.'
-        ],
-        
-        preparation: [
-            '헌 옷과 운동화 (버려도 되는 것)',
-            '고글 또는 수경',
-            '방수 가방 및 휴대폰 방수 케이스',
-            '수건과 여벌 옷',
-            '자외선 차단제',
-            '모자 (버릴 수 있는 것)'
-        ]
+        budget: {
+            '항공권': 800000,
+            '숙박': 500000,
+            '식사': 400000,
+            '입장료': 200000,
+            '교통': 200000,
+            '기타': 100000
+        },
+        tips: {
+            준비물: ['오래된 옷', '고글', '방수 신발', '수건'],
+            주의사항: ['귀중품은 호텔에 보관', '토마토가 눈에 들어가지 않도록 주의', '축제 후 샤워 시설 이용'],
+            추천: ['축제 전날 부뇰 도착', '파에야 맛보기', '발렌시아 해변 방문']
+        },
+        packageDetails: {
+            included: [
+                '왕복 항공권 (인천-마드리드-발렌시아, 이코노미석)',
+                '4성급 호텔 4박 (조식 포함)',
+                '라 토마티나 입장권 및 참가복',
+                '발렌시아 시내 가이드 투어',
+                '알부페라 국립공원 투어',
+                '여행자 보험',
+                '한국인 가이드',
+                '공항-호텔 왕복 셔틀'
+            ],
+            excluded: [
+                '개인 경비 및 쇼핑 비용',
+                '선택 관광 프로그램',
+                '점심/저녁 식사',
+                '호텔 미니바',
+                '여권 발급 비용'
+            ],
+            productCode: 'FEST-ES-001',
+            departureDates: [
+                '2025년 8월 23일 (토)',
+                '2025년 8월 24일 (일)',
+                '2025년 8월 25일 (월)'
+            ],
+            groupDiscount: {
+                '4-6명': '1인당 30,000원 할인',
+                '7-9명': '1인당 50,000원 할인',
+                '10명 이상': '1인당 80,000원 할인'
+            }
+        }
     },
-    
     oktoberfest: {
         id: 'oktoberfest',
-        name: 'Oktoberfest',
-        nameKo: '옥토버페스트',
-        location: '뮌헨, 독일',
-        country: 'Germany',
-        period: '9월 중순 ~ 10월 초 (약 16일간)',
-        description: '세계 최대 규모의 맥주 축제로, 매년 600만 명 이상이 방문합니다. 전통 바이에른 문화와 함께 최고의 맥주를 즐길 수 있습니다.',
-        targetAudience: '직장인, 문화 애호가, 맥주 애호가',
-        totalBudget: 2800000,
-        imageKeyword: 'Oktoberfest Munich Germany',
-        mapEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d42525.72825568896!2d11.5191866!3d48.1317432!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x479e75f9a38c5fd9%3A0x10cb84a7db1987d!2sTheresienwiese%2C%20Munich%2C%20Germany!5e0!3m2!1sen!2skr!4v1635000000000!5m2!1sen!2skr',
-        
-        budget: {
-            flight: { label: '항공권 (왕복)', amount: 1400000, icon: 'fa-plane' },
-            accommodation: { label: '숙박 (6박)', amount: 600000, icon: 'fa-hotel' },
-            food: { label: '식비', amount: 400000, icon: 'fa-utensils' },
-            festival: { label: '맥주 & 음식', amount: 250000, icon: 'fa-beer' },
-            transportation: { label: '현지 교통', amount: 100000, icon: 'fa-train' },
-            misc: { label: '기타 경비', amount: 50000, icon: 'fa-shopping-bag' }
-        },
-        
+        name: '옥토버페스트',
+        location: '독일 뮌헨',
+        period: '9월 말 - 10월 초 (약 16-18일)',
+        duration: '6일',
+        price: '₩2,800,000',
+        target: '30대 이상 성인',
+        description: '세계 최대 맥주 축제! 전통 의상을 입고 거대한 텐트에서 맥주와 음식을 즐기는 독일의 대표 축제입니다.',
+        mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2662.7285894982576!2d11.5497!3d48.1316!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x479e75f9a38c5fd9%3A0x10cb84a7db1987d!2sTheresienwiese%2C%20Munich%2C%20Germany!5e0!3m2!1sen!2skr!4v1234567890',
+        imageQuery: 'oktoberfest munich germany',
+        fallbackImage: 'https://images.unsplash.com/photo-1516997121675-4c2d1684aa3e?w=800',
         attractions: [
             {
-                name: '테레지엔비제 (축제장)',
-                location: '뮌헨 시내',
-                description: '옥토버페스트가 열리는 광대한 축제장으로, 14개의 대형 맥주 텐트와 다양한 놀이기구, 전통 음식 부스가 있습니다.',
-                course: '1-3일차',
-                imageKeyword: 'Theresienwiese Oktoberfest Munich'
-            },
-            {
-                name: '마리엔 광장',
-                location: '뮌헨 구시가지',
-                description: '뮌헨의 중심 광장으로, 신시청사의 글로켄슈필(자동 인형시계)이 유명합니다. 주변에 쇼핑가와 레스토랑이 밀집해 있습니다.',
-                course: '4일차',
-                imageKeyword: 'Marienplatz Munich'
+                name: '옥토버페스트 메인 텐트',
+                description: '전통 맥주와 바이에른 음식',
+                image: 'https://images.unsplash.com/photo-1516997121675-4c2d1684aa3e?w=600'
             },
             {
                 name: '노이슈반슈타인 성',
-                location: '퓌센 (뮌헨에서 2시간)',
-                description: '디즈니 성의 모델이 된 동화 같은 성으로, 독일에서 가장 인기 있는 관광지입니다. 알프스 산맥을 배경으로 한 절경이 압권입니다.',
-                course: '5일차',
-                imageKeyword: 'Neuschwanstein Castle Germany'
+                description: '동화 속 성의 모델',
+                image: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600'
             },
             {
-                name: 'BMW 박물관 & 올림픽 공원',
-                location: '뮌헨 북부',
-                description: 'BMW의 역사와 혁신을 체험할 수 있는 박물관과 1972년 올림픽이 열렸던 현대적인 공원입니다.',
-                course: '6일차',
-                imageKeyword: 'BMW Museum Munich'
+                name: '마리엔 광장',
+                description: '뮌헨 구시가지 중심',
+                image: 'https://images.unsplash.com/photo-1595867818082-083862f3d630?w=600'
             }
         ],
-        
-        tips: [
-            '주말과 저녁 시간에는 텐트가 매우 혼잡하니 평일 오전 방문을 추천합니다.',
-            '전통 의상(디른들, 레더호젠)을 입으면 더욱 분위기를 즐길 수 있습니다.',
-            '1 Mass(맥주 1리터)는 약 13-15유로이며, 음식은 10-20유로 정도입니다.',
-            '텐트 내 테이블 예약은 필수이며, 호텔은 최소 6개월 전 예약이 필요합니다.',
-            '대중교통(U-Bahn, S-Bahn)을 이용하면 편리합니다.',
-            '안전을 위해 귀중품을 조심하고, 과음하지 않도록 주의하세요.'
-        ],
-        
-        preparation: [
-            '편안한 신발 (오래 걷게 됩니다)',
-            '전통 의상 (선택사항, 현지 구매 가능)',
-            '카메라 (멋진 사진 촬영)',
-            '현금 (일부 텐트는 카드 불가)',
-            '가벼운 재킷 (밤에는 쌀쌀)',
-            '숙취 해소제'
-        ]
+        budget: {
+            '항공권': 1000000,
+            '숙박': 700000,
+            '식사': 500000,
+            '입장료': 300000,
+            '교통': 200000,
+            '기타': 100000
+        },
+        tips: {
+            준비물: ['전통 의상 (디른들/레더호젠)', '편한 신발', '큰 가방'],
+            주의사항: ['텐트 예약 필수', '현금 준비', '과음 주의'],
+            추천: ['아침 일찍 방문', '전통 의상 대여', '주변 도시 방문']
+        },
+        packageDetails: {
+            included: [
+                '왕복 항공권 (인천-뮌헨, 이코노미석)',
+                '5성급 호텔 5박 (조식 포함)',
+                '옥토버페스트 입장권 2회',
+                '맥주 텐트 예약석 & 맥주 2리터 쿠폰',
+                '뮌헨 시내 가이드 투어',
+                '노이슈반슈타인 성 당일 투어',
+                '여행자 보험',
+                '한국인 가이드'
+            ],
+            excluded: [
+                '개인 경비 및 쇼핑 비용',
+                '선택 관광 프로그램',
+                '추가 맥주 및 식사',
+                '호텔 미니바 및 룸서비스',
+                '여권 발급 비용'
+            ],
+            productCode: 'FEST-DE-002',
+            departureDates: [
+                '2025년 9월 18일 (목)',
+                '2025년 9월 25일 (목)',
+                '2025년 10월 2일 (목)'
+            ],
+            groupDiscount: {
+                '4-6명': '1인당 50,000원 할인',
+                '7-9명': '1인당 80,000원 할인',
+                '10명 이상': '1인당 100,000원 할인'
+            }
+        }
     },
-    
     carnival: {
         id: 'carnival',
-        name: 'Rio Carnival',
-        nameKo: '리우 카니발',
-        location: '리우데자네이루, 브라질',
-        country: 'Brazil',
-        period: '2월 말 ~ 3월 초 (재의 수요일 전 5일간)',
-        description: '세계에서 가장 화려하고 열정적인 축제로, 삼바 퍼레이드와 거리 파티가 도시 전체를 뜨겁게 달굽니다.',
-        targetAudience: '음악/춤 애호가, 축제 마니아, 활동적인 여행객',
-        totalBudget: 3500000,
-        imageKeyword: 'Rio Carnival Brazil',
-        mapEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117505.38165523665!2d-43.2093736!3d-22.9068467!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9bde559108a05b%3A0x50dc426c672fd24e!2sSambadrome%20Marquês%20de%20Sapucaí!5e0!3m2!1sen!2skr!4v1635000000000!5m2!1sen!2skr',
-        
-        budget: {
-            flight: { label: '항공권 (왕복)', amount: 1800000, icon: 'fa-plane' },
-            accommodation: { label: '숙박 (7박)', amount: 800000, icon: 'fa-hotel' },
-            food: { label: '식비', amount: 450000, icon: 'fa-utensils' },
-            festival: { label: '카니발 티켓', amount: 300000, icon: 'fa-ticket-alt' },
-            transportation: { label: '현지 교통', amount: 100000, icon: 'fa-taxi' },
-            misc: { label: '기타 경비', amount: 50000, icon: 'fa-shopping-bag' }
-        },
-        
+        name: '리우 카니발',
+        location: '브라질 리우데자네이루',
+        period: '매년 2월 (사순절 시작 전)',
+        duration: '7일',
+        price: '₩3,500,000',
+        target: '전 연령',
+        description: '세계 최대 규모의 카니발! 화려한 삼바 퍼레이드와 거리 축제가 펼쳐지는 브라질의 대표 축제입니다.',
+        mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3675.2285894982576!2d-43.2093!3d-22.9068!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x997e58a085b7af%3A0x4d11e9a933d38ce3!2sRio%20de%20Janeiro%2C%20Brazil!5e0!3m2!1sen!2skr!4v1234567890',
+        imageQuery: 'rio carnival brazil',
+        fallbackImage: 'https://images.unsplash.com/photo-1516450137517-162bfbeb8dba?w=800',
         attractions: [
             {
-                name: '삼보드로모',
-                location: '센트로',
-                description: '카니발 삼바 퍼레이드가 열리는 거대한 경기장으로, 12개 삼바 스쿨의 화려한 공연을 감상할 수 있습니다. 밤새 진행되는 퍼레이드는 압도적인 스펙터클을 선사합니다.',
-                course: '1-2일차',
-                imageKeyword: 'Sambadrome Rio de Janeiro'
-            },
-            {
-                name: '코파카바나 해변',
-                location: '코파카바나',
-                description: '세계에서 가장 유명한 해변 중 하나로, 카니발 기간에는 거리 파티(블로코)가 열립니다. 4km의 백사장과 활기찬 분위기를 즐기세요.',
-                course: '3일차',
-                imageKeyword: 'Copacabana beach Rio'
+                name: '삼바드롬 퍼레이드',
+                description: '화려한 삼바 학교들의 경연',
+                image: 'https://images.unsplash.com/photo-1516450137517-162bfbeb8dba?w=600'
             },
             {
                 name: '코르코바도 예수상',
-                location: '코르코바도 산',
-                description: '리우의 상징인 38m 높이의 거대한 예수상이 있는 곳으로, 리우 전경을 한눈에 볼 수 있는 최고의 전망대입니다.',
-                course: '4일차',
-                imageKeyword: 'Christ the Redeemer Rio'
+                description: '리우의 상징적인 랜드마크',
+                image: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=600'
             },
             {
-                name: '슈가로프 산',
-                location: '우르카',
-                description: '케이블카를 타고 올라가는 396m 높이의 화강암 봉우리로, 리우의 아름다운 만과 해변을 조망할 수 있습니다. 일몰 시간대가 특히 인기입니다.',
-                course: '5일차',
-                imageKeyword: 'Sugarloaf Mountain Rio'
-            },
-            {
-                name: '셀라론 계단',
-                location: '라파',
-                description: '칠레 예술가 호르헤 셀라론이 만든 215개의 계단으로, 세계 각국에서 가져온 타일로 장식되어 있습니다. 사진 촬영 명소로 유명합니다.',
-                course: '6일차',
-                imageKeyword: 'Selaron Steps Rio'
-            },
-            {
-                name: '이파네마 해변',
-                location: '이파네마',
-                description: '보사노바의 명곡 "이파네마에서 온 소녀"로 유명한 세련된 해변으로, 코파카바나보다 조용하고 고급스러운 분위기입니다.',
-                course: '7일차',
-                imageKeyword: 'Ipanema beach Rio'
+                name: '코파카바나 해변',
+                description: '세계적으로 유명한 해변',
+                image: 'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?w=600'
             }
         ],
-        
-        tips: [
-            '삼보드로모 티켓은 최소 3-4개월 전 예약이 필수입니다.',
-            '호텔 가격이 평소의 3-5배로 오르니 조기 예약하세요.',
-            '거리 파티(블로코)는 무료이며, 더 자유로운 분위기를 즐길 수 있습니다.',
-            '소매치기가 많으니 귀중품은 호텔에 두고, 최소한만 지참하세요.',
-            '더운 날씨이므로 수분 섭취와 자외선 차단에 신경 쓰세요.',
-            '포르투갈어 기본 회화를 익혀두면 도움이 됩니다.',
-            '밤늦게 혼자 다니지 말고, 택시는 공식 택시만 이용하세요.'
-        ],
-        
-        preparation: [
-            '가벼운 여름 옷 (반팔, 반바지, 수영복)',
-            '편안한 샌들과 운동화',
-            '카니발 의상 (선택사항, 현지 구매 가능)',
-            '높은 SPF 자외선 차단제',
-            '모자와 선글라스',
-            '방수 가방 및 휴대폰 방수 케이스',
-            '비상 약품 (설사약, 해열제 등)',
-            '현금 (거리에서는 카드 사용 어려움)'
-        ]
+        budget: {
+            '항공권': 1500000,
+            '숙박': 800000,
+            '식사': 500000,
+            '입장료': 400000,
+            '교통': 200000,
+            '기타': 100000
+        },
+        tips: {
+            준비물: ['가벼운 여름옷', '선크림', '모자', '카메라'],
+            주의사항: ['소매치기 주의', '귀중품 최소 소지', '수분 보충'],
+            추천: ['거리 파티 참가', '삼바 의상 체험', '해변 산책']
+        },
+        packageDetails: {
+            included: [
+                '왕복 항공권 (인천-상파울루-리우, 이코노미석)',
+                '4성급 호텔 6박 (조식 포함)',
+                '카니발 퍼레이드 지정석 입장권',
+                '삼바드롬 VIP 구역 2일권',
+                '코르코바도 예수상 투어',
+                '슈가로프 마운틴 케이블카',
+                '이파네마 비치 선셋 크루즈',
+                '여행자 보험',
+                '한국인 가이드'
+            ],
+            excluded: [
+                '개인 경비 및 쇼핑 비용',
+                '선택 관광 프로그램',
+                '추가 식사 및 음료',
+                '카니발 의상 대여',
+                '호텔 미니바',
+                '여권 및 비자 발급 비용'
+            ],
+            productCode: 'FEST-BR-003',
+            departureDates: [
+                '2026년 2월 12일 (목)',
+                '2026년 2월 14일 (토)',
+                '2026년 2월 16일 (월)'
+            ],
+            groupDiscount: {
+                '4-6명': '1인당 70,000원 할인',
+                '7-9명': '1인당 100,000원 할인',
+                '10명 이상': '1인당 150,000원 할인'
+            }
+        }
     }
 };
 
-
-// ===== 상품 개발 배경 및 시장 분석 데이터 =====
+// ===== 시장 분석 데이터 =====
 const marketAnalysis = {
     developmentReason: {
-        title: '해외 축제 관광상품 개발 이유',
         trends: [
             {
                 icon: 'fa-chart-line',
@@ -319,455 +247,234 @@ const marketAnalysis = {
             },
             {
                 icon: 'fa-calendar-check',
-                title: '시즌성을 활용한 수익 극대화',
+                title: '시즌성 활용 수익 극대화',
                 description: '축제 특정 기간에 집중 판매로 성수기 매출 확보 및 연간 매출 안정화'
             }
         ],
-        targetJustification: {
-            primary: {
-                segment: '대학생 및 직장 초년생 (20-30대)',
-                reason: 'SNS 활동 활발, 새로운 경험 추구, 친구들과의 추억 만들기 중시',
-                marketSize: '연간 약 50만명 (해외여행 시장의 15%)',
-                averageSpend: '250만원'
+        targetCustomers: [
+            {
+                segment: '주 타겟: 대학생 및 직장 초년생 (20-30대)',
+                size: '50만명',
+                spending: '250만원',
+                reason: 'SNS 활동 활발, 새로운 경험 추구, 친구들과의 추억 만들기 중시'
             },
-            secondary: {
-                segment: '직장인 및 신혼부부 (30-40대)',
-                reason: '여유로운 소득, 품질 중시, 문화체험 선호',
-                marketSize: '연간 약 30만명',
-                averageSpend: '350만원'
+            {
+                segment: '부 타겟: 직장인 및 신혼부부 (30-40대)',
+                size: '30만명',
+                spending: '350만원',
+                reason: '여유로운 소득, 품질 중시, 문화체험 선호'
             }
-        },
-        competitiveAdvantage: [
-            '축제 현장 분위기와 관광을 동시에 즐길 수 있는 복합 상품',
-            '각 축제별 최적화된 일정 및 숙소 배치',
-            '현지 가이드와 함께하는 안전하고 편리한 여행',
-            '단체 할인을 통한 가격 경쟁력'
         ]
     },
-    
     profitability: {
         tomatina: {
-            productCode: 'FEST-ES-001',
-            productName: '열정의 토마토 축제 5일',
-            costStructure: {
-                airfare: 1100000,      // 원가
-                accommodation: 350000,
-                meals: 200000,
-                admission: 40000,
-                guide: 150000,
-                insurance: 50000,
-                margin: 310000         // 마진
-            },
             sellingPrice: 2200000,
-            costPrice: 1890000,
-            marginRate: 14.1,          // 마진율 %
-            breakEvenUnits: 15,        // 손익분기점 인원
-            expectedUnits: {
-                monthly: 40,           // 월 예상 인원 (8월 집중)
-                quarterly: 80,
-                annual: 120
-            },
-            revenue: {
-                monthly: 88000000,     // 월 예상 매출
-                quarterly: 176000000,
-                annual: 264000000
-            },
-            profit: {
-                monthly: 12400000,     // 월 예상 수익
-                quarterly: 24800000,
-                annual: 37200000
-            }
+            fixedCost: 500000,
+            variableCost: 1390000,
+            totalCost: 1890000,
+            margin: 0.141,
+            breakEven: 15,
+            expectedCustomers: 120,
+            annualRevenue: 37200000
         },
         oktoberfest: {
-            productCode: 'FEST-DE-002',
-            productName: '뮌헨 맥주 축제 6일',
-            costStructure: {
-                airfare: 1300000,
-                accommodation: 500000,
-                meals: 280000,
-                admission: 0,
-                guide: 180000,
-                insurance: 60000,
-                margin: 480000
-            },
             sellingPrice: 2800000,
-            costPrice: 2320000,
-            marginRate: 17.1,
-            breakEvenUnits: 12,
-            expectedUnits: {
-                monthly: 60,
-                quarterly: 120,
-                annual: 180
-            },
-            revenue: {
-                monthly: 168000000,
-                quarterly: 336000000,
-                annual: 504000000
-            },
-            profit: {
-                monthly: 28800000,
-                quarterly: 57600000,
-                annual: 86400000
-            }
+            fixedCost: 600000,
+            variableCost: 1720000,
+            totalCost: 2320000,
+            margin: 0.171,
+            breakEven: 12,
+            expectedCustomers: 180,
+            annualRevenue: 86400000
         },
         carnival: {
-            productCode: 'FEST-BR-003',
-            productName: '리우 삼바 카니발 7일',
-            costStructure: {
-                airfare: 1650000,
-                accommodation: 700000,
-                meals: 350000,
-                admission: 250000,
-                guide: 200000,
-                insurance: 70000,
-                margin: 780000
-            },
             sellingPrice: 3500000,
-            costPrice: 3220000,
-            marginRate: 22.3,
-            breakEvenUnits: 10,
-            expectedUnits: {
-                monthly: 35,
-                quarterly: 70,
-                annual: 105
-            },
-            revenue: {
-                monthly: 122500000,
-                quarterly: 245000000,
-                annual: 367500000
-            },
-            profit: {
-                monthly: 27300000,
-                quarterly: 54600000,
-                annual: 81900000
-            }
-        },
-        total: {
-            annualRevenue: 1135500000,     // 총 연간 매출
-            annualProfit: 205500000,        // 총 연간 수익
-            averageMarginRate: 18.1,        // 평균 마진율
-            totalExpectedCustomers: 405     // 총 예상 고객 수
-        }
-    },
-    
-    expectedEffects: {
-        financial: {
-            firstYearRevenue: 1135500000,
-            firstYearProfit: 205500000,
-            secondYearGrowth: 30,          // 2년차 성장률 %
-            thirdYearGrowth: 50            // 3년차 누적 성장률 %
-        },
-        marketing: {
-            brandAwareness: '축제 전문 여행사 이미지 구축',
-            customerRetention: '재방문율 40% 이상 목표',
-            wordOfMouth: 'SNS 바이럴 마케팅 효과',
-            mediaExposure: '여행 전문 매체 및 블로거 협업'
-        },
-        strategic: {
-            portfolioDiversification: '계절별 상품 라인업 확대',
-            b2bOpportunities: '대학교, 기업 단체 여행 수주',
-            futureExpansion: '아시아 축제(홀리, 송크란 등) 확장 계획',
-            partnershipBuilding: '현지 여행사 및 호텔 장기 계약'
+            fixedCost: 800000,
+            variableCost: 2420000,
+            totalCost: 3220000,
+            margin: 0.223,
+            breakEven: 10,
+            expectedCustomers: 105,
+            annualRevenue: 81900000
         }
     }
 };
 
-
-// ===== Unsplash API 설정 =====
-// 실제 사용 시에는 본인의 Unsplash API Key를 발급받아 사용하세요
-// https://unsplash.com/developers 에서 무료로 발급 가능
-const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
-const UNSPLASH_API_URL = 'https://api.unsplash.com/search/photos';
-
-// ===== 이미지 캐시 저장소 =====
-const imageCache = {};
-
-// ===== Unsplash API를 통한 이미지 검색 =====
-async function fetchImageFromUnsplash(keyword, size = 'regular') {
-    // 캐시 확인
-    if (imageCache[keyword]) {
-        return imageCache[keyword];
+// ===== 기대 효과 데이터 =====
+const expectedEffects = {
+    financial: {
+        year1: {
+            revenue: 1140000000,
+            profit: 210000000,
+            margin: 0.181
+        },
+        year2Growth: 0.30,
+        year3Growth: 0.50
+    },
+    marketing: {
+        brandBuilding: '축제 전문 여행사 브랜드 구축',
+        returnRate: 0.40,
+        viral: 'SNS 바이럴 마케팅 효과',
+        partnership: '여행 매체 및 블로거 협업'
+    },
+    strategic: {
+        expansion: '계절별 상품 라인업 확대',
+        b2b: '대학교/기업 단체 여행 수주',
+        asiaExpansion: '아시아 축제 확장 계획',
+        partnership: '현지 장기 파트너십 구축'
     }
-    
-    try {
-        // API Key가 설정되지 않은 경우 플레이스홀더 이미지 사용
-        if (UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY_HERE') {
-            console.warn('Unsplash API Key가 설정되지 않았습니다. 플레이스홀더 이미지를 사용합니다.');
-            return getPlaceholderImage(keyword);
-        }
-        
-        const response = await fetch(
-            `${UNSPLASH_API_URL}?query=${encodeURIComponent(keyword)}&per_page=1&orientation=landscape`,
-            {
-                headers: {
-                    'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-                }
-            }
-        );
-        
-        if (!response.ok) {
-            throw new Error('이미지를 가져오는데 실패했습니다.');
-        }
-        
-        const data = await response.json();
-        
-        if (data.results && data.results.length > 0) {
-            const imageUrl = data.results[0].urls[size];
-            imageCache[keyword] = imageUrl;
-            return imageUrl;
-        } else {
-            return getPlaceholderImage(keyword);
-        }
-    } catch (error) {
-        console.error('Unsplash API 오류:', error);
-        return getPlaceholderImage(keyword);
-    }
-}
-
-// ===== 플레이스홀더 이미지 생성 (API 키가 없을 때 사용) =====
-function getPlaceholderImage(keyword) {
-    // 고정 이미지 URL 사용 (더 안정적)
-    const imageMap = {
-        'La Tomatina festival Spain': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&h=900&fit=crop',
-        'Munich Oktoberfest Germany': 'https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=1600&h=900&fit=crop',
-        'Rio Carnival Brazil': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&h=900&fit=crop',
-        'Bunol Castle Spain': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&h=600&fit=crop',
-        'Valencia old town Spain': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
-        'City of Arts and Sciences Valencia': 'https://images.unsplash.com/photo-1562883676-8c7feb83f09b?w=800&h=600&fit=crop',
-        'Malvarrosa beach Valencia': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop',
-        'Theresienwiese Oktoberfest Munich': 'https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=800&h=600&fit=crop',
-        'Marienplatz Munich': 'https://images.unsplash.com/photo-1595867818082-083862f3d630?w=800&h=600&fit=crop',
-        'Neuschwanstein Castle Germany': 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800&h=600&fit=crop',
-        'BMW Museum Munich': 'https://images.unsplash.com/photo-1556195023-d5d7bf52a3f7?w=800&h=600&fit=crop',
-        'Sambadrome Rio de Janeiro': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=600&fit=crop',
-        'Copacabana beach Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
-        'Christ the Redeemer Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
-        'Sugarloaf Mountain Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop',
-        'Selaron Steps Rio': 'https://images.unsplash.com/photo-1516826957135-700dedea698c?w=800&h=600&fit=crop',
-        'Ipanema beach Rio': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop'
-    };
-    
-    return imageMap[keyword] || `https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&h=900&fit=crop&q=80&${Math.random()}`;
-}
+};
 
 // ===== 페이지 로드 시 초기화 =====
-document.addEventListener('DOMContentLoaded', async function() {
-    await loadFestivalCards();
-    setupSmoothScroll();
-    setupAnimations();
+document.addEventListener('DOMContentLoaded', function() {
+    loadFestivalCards();
+    setupModalHandlers();
 });
 
-// ===== 축제 카드 로드 및 이미지 삽입 =====
+// ===== 축제 카드 로딩 =====
 async function loadFestivalCards() {
-    const container = document.getElementById('festivalCards');
-    container.innerHTML = ''; // 초기화
-    
-    // 스켈레톤 로딩 표시
-    showSkeletonCards(container);
-    
-    // 각 축제 데이터 처리
-    for (const [key, festival] of Object.entries(festivalsData)) {
-        try {
-            // 메인 이미지 가져오기
-            const mainImage = await fetchImageFromUnsplash(festival.imageKeyword);
-            
-            // 카드 생성
-            const card = createFestivalCard(festival, mainImage);
-            container.appendChild(card);
-        } catch (error) {
-            console.error(`${festival.name} 카드 생성 오류:`, error);
+    const container = document.getElementById('festivalsGrid');
+    if (!container) return;
+
+    container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+
+    try {
+        for (const [key, festival] of Object.entries(festivalsData)) {
+            const imageUrl = await fetchUnsplashImage(festival.imageQuery, festival.fallbackImage);
+            const card = createFestivalCard(festival, imageUrl);
+            container.insertAdjacentHTML('beforeend', card);
         }
-    }
-    
-    // 스켈레톤 제거
-    removeSkeletonCards(container);
-}
-
-// ===== 스켈레톤 카드 표시 =====
-function showSkeletonCards(container) {
-    for (let i = 0; i < 3; i++) {
-        const skeleton = document.createElement('div');
-        skeleton.className = 'col-lg-4 col-md-6 skeleton-card';
-        skeleton.innerHTML = `
-            <div class="festival-card">
-                <div class="festival-card-image skeleton" style="height: 250px;"></div>
-                <div class="festival-card-body">
-                    <div class="skeleton" style="height: 30px; width: 80%; margin-bottom: 1rem;"></div>
-                    <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div>
-                    <div class="skeleton" style="height: 60px; width: 100%;"></div>
-                </div>
-            </div>
-        `;
-        container.appendChild(skeleton);
+    } catch (error) {
+        console.error('Error loading festivals:', error);
+        container.innerHTML = '<div class="col-12 text-center text-danger">축제 정보를 불러올 수 없습니다.</div>';
     }
 }
 
-// ===== 스켈레톤 카드 제거 =====
-function removeSkeletonCards(container) {
-    const skeletons = container.querySelectorAll('.skeleton-card');
-    skeletons.forEach(skeleton => skeleton.remove());
+// ===== Unsplash 이미지 가져오기 =====
+async function fetchUnsplashImage(query, fallback) {
+    try {
+        const response = await fetch(
+            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`
+        );
+        
+        if (!response.ok) throw new Error('API request failed');
+        
+        const data = await response.json();
+        return data.results[0]?.urls?.regular || fallback;
+    } catch (error) {
+        console.error('Unsplash API error:', error);
+        return fallback;
+    }
 }
 
-// ===== 축제 카드 생성 =====
+// ===== 축제 카드 HTML 생성 =====
 function createFestivalCard(festival, imageUrl) {
-    const col = document.createElement('div');
-    col.className = 'col-lg-4 col-md-6';
-    
-    col.innerHTML = `
-        <div class="festival-card" onclick="showFestivalDetail('${festival.id}')">
-            <div class="festival-card-image">
-                <img src="${imageUrl}" alt="${festival.name}" loading="lazy">
-                <div class="festival-card-badge">${festival.country}</div>
-            </div>
-            <div class="festival-card-body">
-                <h3 class="festival-card-title">${festival.nameKo}</h3>
-                <p class="festival-card-location">
-                    <i class="fas fa-map-marker-alt"></i> ${festival.location}
-                </p>
-                <p class="festival-card-description">${festival.description}</p>
-                <div class="festival-card-info">
-                    <span class="festival-card-period">
-                        <i class="fas fa-calendar-alt"></i> ${festival.period.split('~')[0].trim()}
-                    </span>
-                    <span class="festival-card-price">
-                        ₩${formatNumber(festival.totalBudget)}
-                    </span>
+    return `
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="festival-card" onclick="showFestivalDetail('${festival.id}')">
+                <div class="festival-image" style="background-image: url('${imageUrl}')"></div>
+                <div class="festival-content">
+                    <h3>${festival.name}</h3>
+                    <p class="festival-location">
+                        <i class="fas fa-map-marker-alt"></i> ${festival.location}
+                    </p>
+                    <p class="festival-date">
+                        <i class="fas fa-calendar"></i> ${festival.period}
+                    </p>
+                    <p class="festival-description">${festival.description}</p>
+                    <div class="festival-footer">
+                        <span class="festival-price">${festival.price}</span>
+                        <button class="btn btn-primary btn-sm">자세히 보기</button>
+                    </div>
                 </div>
             </div>
         </div>
     `;
-    
-    return col;
 }
 
-// ===== 숫자 포맷팅 (천 단위 콤마) =====
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// ===== 모달 핸들러 설정 =====
+function setupModalHandlers() {
+    const modal = document.getElementById('festivalModal');
+    if (modal) {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // 모달이 닫힐 때 차트 정리
+            if (window.budgetChart) {
+                window.budgetChart.destroy();
+                window.budgetChart = null;
+            }
+        });
+    }
 }
 
 // ===== 축제 상세 정보 표시 =====
 async function showFestivalDetail(festivalId) {
     const festival = festivalsData[festivalId];
     if (!festival) return;
-    
-    const detailSection = document.getElementById('festivalDetail');
-    
-    // 상세 정보 표시
-    detailSection.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // 스크롤 방지
-    
-    // 헤더 이미지 로드
-    const headerImage = await fetchImageFromUnsplash(festival.imageKeyword, 'full');
-    document.getElementById('detailHeaderImage').src = headerImage;
-    
-    // 기본 정보 채우기
-    document.getElementById('detailTitle').textContent = festival.nameKo;
-    document.getElementById('detailLocation').querySelector('span').textContent = festival.location;
+
+    // 모달 제목 및 기본 정보 설정
+    document.getElementById('festivalModalLabel').textContent = festival.name;
     document.getElementById('detailPeriod').textContent = festival.period;
-    document.getElementById('detailTarget').textContent = festival.targetAudience;
+    document.getElementById('detailTarget').textContent = festival.target;
     document.getElementById('detailDescription').textContent = festival.description;
-    
-    // 지도 로드
-    document.getElementById('detailMap').innerHTML = `
-        <iframe src="${festival.mapEmbed}" allowfullscreen="" loading="lazy"></iframe>
-    `;
-    
-    // 관광지 로드
-    await loadAttractions(festival);
-    
-    // 경비 정보 로드
-    loadBudgetInfo(festival);
-    
-    // 여행 팁 로드
-    loadTravelTips(festival);
-    
-    // 맨 위로 스크롤
-    detailSection.scrollTop = 0;
+
+    // 지도 설정
+    const mapContainer = document.getElementById('detailMap');
+    mapContainer.innerHTML = `<iframe src="${festival.mapUrl}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+
+    // 관광지 목록 표시
+    displayAttractions(festival.attractions);
+
+    // 경비 차트 표시
+    displayBudgetChart(festival.budget, festival.price);
+
+    // 여행 팁 표시
+    displayTravelTips(festival.tips);
+
+    // 패키지 정보 표시
+    if (festival.packageDetails) {
+        displayPackageInfo(festival.packageDetails);
+    }
+
+    // 손익분기점 계산 및 표시
+    displayBreakEvenAnalysis(festivalId);
+
+    // 모달 표시
+    const modal = new bootstrap.Modal(document.getElementById('festivalModal'));
+    modal.show();
 }
 
-// ===== 관광지 리스트 로드 =====
-async function loadAttractions(festival) {
+// ===== 관광지 목록 표시 =====
+function displayAttractions(attractions) {
     const container = document.getElementById('attractionsList');
-    container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-    
-    const attractionsHTML = [];
-    
-    for (const attraction of festival.attractions) {
-        // 각 관광지 이미지 가져오기
-        const image = await fetchImageFromUnsplash(attraction.imageKeyword, 'small');
-        
-        attractionsHTML.push(`
-            <div class="attraction-item">
-                <img src="${image}" alt="${attraction.name}" class="attraction-image">
-                <div class="attraction-content">
-                    <h4>${attraction.name}</h4>
-                    <p>${attraction.description}</p>
-                    <div class="attraction-location">
-                        <i class="fas fa-map-marker-alt"></i> ${attraction.location}
-                        <span style="margin-left: 1rem; color: #667eea;">
-                            <i class="fas fa-route"></i> ${attraction.course}
-                        </span>
-                    </div>
-                </div>
+    container.innerHTML = attractions.map(attraction => `
+        <div class="col-md-4 mb-4">
+            <div class="attraction-card">
+                <img src="${attraction.image}" alt="${attraction.name}" class="attraction-image">
+                <h4>${attraction.name}</h4>
+                <p>${attraction.description}</p>
             </div>
-        `);
-    }
-    
-    container.innerHTML = attractionsHTML.join('');
+        </div>
+    `).join('');
 }
 
-// ===== 경비 정보 로드 =====
-function loadBudgetInfo(festival) {
-    const detailsContainer = document.getElementById('budgetDetails');
-    const totalContainer = document.getElementById('budgetTotal');
-    
-    let budgetHTML = '';
-    const labels = [];
-    const amounts = [];
-    
-    for (const [key, item] of Object.entries(festival.budget)) {
-        budgetHTML += `
-            <div class="budget-item">
-                <div class="budget-item-label">
-                    <i class="fas ${item.icon}"></i>
-                    ${item.label}
-                </div>
-                <div class="budget-item-value">₩${formatNumber(item.amount)}</div>
-            </div>
-        `;
-        labels.push(item.label);
-        amounts.push(item.amount);
-    }
-    
-    detailsContainer.innerHTML = budgetHTML;
-    totalContainer.textContent = `₩${formatNumber(festival.totalBudget)}`;
-    
-    // 차트 생성
-    createBudgetChart(labels, amounts);
-}
-
-// ===== 경비 차트 생성 (Chart.js) =====
-let budgetChartInstance = null;
-
-function createBudgetChart(labels, data) {
+// ===== 경비 차트 표시 =====
+function displayBudgetChart(budget, totalPrice) {
     const ctx = document.getElementById('budgetChart');
-    
+    if (!ctx) return;
+
     // 기존 차트 제거
-    if (budgetChartInstance) {
-        budgetChartInstance.destroy();
+    if (window.budgetChart) {
+        window.budgetChart.destroy();
     }
-    
-    // 색상 팔레트
+
+    const labels = Object.keys(budget);
+    const data = Object.values(budget);
     const colors = [
-        '#667eea',
-        '#764ba2',
-        '#f093fb',
-        '#4facfe',
-        '#43e97b',
-        '#fa709a'
+        '#667eea', '#764ba2', '#f093fb', '#4facfe',
+        '#43e97b', '#fa709a', '#fee140', '#30cfd0'
     ];
-    
-    budgetChartInstance = new Chart(ctx, {
+
+    window.budgetChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
@@ -780,198 +487,164 @@ function createBudgetChart(labels, data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: 'right',
                     labels: {
+                        boxWidth: 15,
                         padding: 15,
-                        font: {
-                            size: 12,
-                            family: "'Noto Sans KR', sans-serif"
-                        }
+                        font: { size: 12 }
                     }
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += '₩' + formatNumber(context.parsed);
-                            
-                            // 퍼센트 계산
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percent = ((context.parsed / total) * 100).toFixed(1);
-                            label += ` (${percent}%)`;
-                            
-                            return label;
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            return `${label}: ₩${value.toLocaleString()}`;
                         }
                     }
                 }
             }
         }
     });
+
+    // 총 경비 표시
+    document.getElementById('totalBudget').textContent = totalPrice;
 }
 
-// ===== 여행 팁 로드 =====
-function loadTravelTips(festival) {
-    const tipsContainer = document.getElementById('tipsContent');
-    const prepContainer = document.getElementById('preparationContent');
+// ===== 여행 팁 표시 =====
+function displayTravelTips(tips) {
+    document.getElementById('tipItems').innerHTML = tips.준비물.map(item => 
+        `<li><i class="fas fa-check"></i> ${item}</li>`
+    ).join('');
     
-    // 여행 팁
-    let tipsHTML = '<ul>';
-    festival.tips.forEach(tip => {
-        tipsHTML += `<li><i class="fas fa-check-circle" style="color: #43e97b; margin-right: 0.5rem;"></i>${tip}</li>`;
-    });
-    tipsHTML += '</ul>';
-    tipsContainer.innerHTML = tipsHTML;
+    document.getElementById('tipWarnings').innerHTML = tips.주의사항.map(item => 
+        `<li><i class="fas fa-exclamation-triangle"></i> ${item}</li>`
+    ).join('');
     
-    // 준비물
-    let prepHTML = '<ul>';
-    festival.preparation.forEach(item => {
-        prepHTML += `<li><i class="fas fa-box" style="color: #667eea; margin-right: 0.5rem;"></i>${item}</li>`;
-    });
-    prepHTML += '</ul>';
-    prepContainer.innerHTML = prepHTML;
+    document.getElementById('tipRecommendations').innerHTML = tips.추천.map(item => 
+        `<li><i class="fas fa-star"></i> ${item}</li>`
+    ).join('');
 }
 
-// ===== 상세 정보 닫기 =====
-function closeDetail() {
-    const detailSection = document.getElementById('festivalDetail');
-    detailSection.style.display = 'none';
-    document.body.style.overflow = 'auto'; // 스크롤 복원
-}
-
-// ===== 부드러운 스크롤 설정 =====
-function setupSmoothScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-}
-
-// ===== 스크롤 애니메이션 설정 =====
-function setupAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
-    
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-    
-    // 관찰할 요소들
-    document.querySelectorAll('.festival-card, .accordion-item').forEach(el => {
-        observer.observe(el);
-    });
-}
-
-// ===== ESC 키로 상세 정보 닫기 =====
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeDetail();
-    }
-});
-
-// ===== 상세 정보 배경 클릭 시 닫기 =====
-document.getElementById('festivalDetail')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDetail();
-    }
-});
-
-// ===== 이미지 로딩 에러 처리 =====
-document.addEventListener('error', function(e) {
-    if (e.target.tagName === 'IMG') {
-        e.target.src = 'https://via.placeholder.com/800x600/667eea/ffffff?text=Image+Not+Available';
-    }
-}, true);
-
-// ===== 콘솔 환영 메시지 =====
-console.log('%c🎉 Festival Travel Guide', 'color: #667eea; font-size: 24px; font-weight: bold;');
-console.log('%cUnsplash API를 사용하려면 script.js 파일의 UNSPLASH_ACCESS_KEY를 설정하세요.', 'color: #666; font-size: 14px;');
-console.log('%chttps://unsplash.com/developers 에서 무료로 발급받을 수 있습니다.', 'color: #666; font-size: 14px;');
-
-// 패키지 정보 표시
+// ===== 패키지 정보 표시 =====
 function displayPackageInfo(packageDetails) {
     // 포함 사항
     const includedList = document.getElementById('packageIncluded');
-    includedList.innerHTML = packageDetails.included.map(item => 
-        `<li><i class="fas fa-check text-success"></i> ${item}</li>`
-    ).join('');
+    if (includedList) {
+        includedList.innerHTML = packageDetails.included.map(item => 
+            `<li><i class="fas fa-check text-success"></i> ${item}</li>`
+        ).join('');
+    }
     
     // 불포함 사항
     const excludedList = document.getElementById('packageExcluded');
-    excludedList.innerHTML = packageDetails.excluded.map(item => 
-        `<li><i class="fas fa-times text-danger"></i> ${item}</li>`
-    ).join('');
+    if (excludedList) {
+        excludedList.innerHTML = packageDetails.excluded.map(item => 
+            `<li><i class="fas fa-times text-danger"></i> ${item}</li>`
+        ).join('');
+    }
     
     // 출발 일정
     const datesList = document.getElementById('packageDates');
-    datesList.innerHTML = packageDetails.departureDates.map(date => 
-        `<li><i class="fas fa-plane-departure text-info"></i> ${date}</li>`
-    ).join('');
+    if (datesList) {
+        datesList.innerHTML = packageDetails.departureDates.map(date => 
+            `<li><i class="fas fa-plane-departure text-info"></i> ${date}</li>`
+        ).join('');
+    }
     
     // 단체 할인
     const discountDiv = document.getElementById('packageDiscount');
-    discountDiv.innerHTML = Object.entries(packageDetails.groupDiscount).map(([people, discount]) => 
-        `<div class="discount-item">
-            <span class="badge bg-warning text-dark">${people}</span> 
-            <span class="text-success fw-bold">${discount}</span>
-        </div>`
-    ).join('');
+    if (discountDiv) {
+        discountDiv.innerHTML = Object.entries(packageDetails.groupDiscount).map(([people, discount]) => 
+            `<div class="discount-item">
+                <span class="badge bg-warning text-dark">${people}</span> 
+                <span class="text-success fw-bold">${discount}</span>
+            </div>`
+        ).join('');
+    }
     
     // 상품 코드
-    document.getElementById('packageCode').textContent = packageDetails.productCode;
+    const codeElement = document.getElementById('packageCode');
+    if (codeElement) {
+        codeElement.textContent = packageDetails.productCode;
+    }
 }
 
+// ===== 손익분기점 분석 표시 =====
+function displayBreakEvenAnalysis(festivalId) {
+    const profitData = marketAnalysis.profitability[festivalId];
+    if (!profitData) return;
 
-// 예약 폼 핸들링
-document.addEventListener('DOMContentLoaded', function() {
-    const reservationForm = document.getElementById('reservationForm');
-    
-    if (reservationForm) {
-        reservationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // 폼 데이터 수집
-            const formData = new FormData(this);
-            
-            // 성공 메시지 표시
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success mt-3';
-            alert.innerHTML = `
-                <i class="fas fa-check-circle me-2"></i>
-                <strong>문의가 접수되었습니다!</strong> 
-                빠른 시일 내에 담당자가 연락드리겠습니다.
-            `;
-            
-            this.insertAdjacentElement('afterend', alert);
-            this.reset();
-            
-            // 3초 후 메시지 제거
-            setTimeout(() => alert.remove(), 5000);
-            
-            // 페이지 상단으로 스크롤
-            setTimeout(() => {
-                alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        });
-    }
-});
+    const container = document.getElementById('breakEvenAnalysis');
+    if (!container) return;
+
+    const { fixedCost, variableCost, sellingPrice, breakEven, margin, expectedCustomers } = profitData;
+
+    container.innerHTML = `
+        <div class="info-card mt-3">
+            <h3><i class="fas fa-calculator text-warning"></i> 손익분기점 분석</h3>
+            <div class="break-even-content">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="analysis-item">
+                            <strong>고정비:</strong>
+                            <span class="text-primary">₩${fixedCost.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="analysis-item">
+                            <strong>1인당 변동비:</strong>
+                            <span class="text-primary">₩${variableCost.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="analysis-item">
+                            <strong>판매가:</strong>
+                            <span class="text-success">₩${sellingPrice.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="analysis-item">
+                            <strong>1인당 공헌이익:</strong>
+                            <span class="text-success">₩${(sellingPrice - variableCost).toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info mb-3">
+                    <h5 class="mb-2"><i class="fas fa-info-circle"></i> 손익분기점 공식</h5>
+                    <p class="mb-0">손익분기점 = 고정비 ÷ (판매가 - 1인당 변동비)</p>
+                    <p class="mb-0">= ${fixedCost.toLocaleString()} ÷ (${sellingPrice.toLocaleString()} - ${variableCost.toLocaleString()})</p>
+                    <p class="mb-0">= ${fixedCost.toLocaleString()} ÷ ${(sellingPrice - variableCost).toLocaleString()}</p>
+                </div>
+                <div class="alert alert-success">
+                    <h4 class="mb-2">
+                        <i class="fas fa-chart-line"></i> 
+                        최소 모객 인원: <strong>${breakEven}명</strong>
+                    </h4>
+                    <p class="mb-2">예상 모객: <strong>${expectedCustomers}명</strong></p>
+                    <p class="mb-0">마진율: <strong>${(margin * 100).toFixed(1)}%</strong></p>
+                </div>
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: ${(breakEven / expectedCustomers * 100)}%"
+                         aria-valuenow="${breakEven}" aria-valuemin="0" aria-valuemax="${expectedCustomers}">
+                        손익분기 ${breakEven}명
+                    </div>
+                    <div class="progress-bar bg-info" role="progressbar" 
+                         style="width: ${((expectedCustomers - breakEven) / expectedCustomers * 100)}%"
+                         aria-valuenow="${expectedCustomers - breakEven}" aria-valuemin="0" aria-valuemax="${expectedCustomers}">
+                        수익구간 ${expectedCustomers - breakEven}명
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    * ${breakEven}명 이상 모객 시 수익 발생, ${expectedCustomers}명 모객 목표
+                </small>
+            </div>
+        </div>
+    `;
+}

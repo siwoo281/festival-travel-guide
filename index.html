@@ -27,7 +27,7 @@
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"><a class="nav-link" href="#festivals">축제</a></li>
                             <li class="nav-item"><a class="nav-link" href="business-analysis.html">사업 분석</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#reservation">예약 문의</a></li>
+                            
                             <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
                         </ul>
                     </div>
@@ -194,6 +194,11 @@
                         </div>
                     </div>
 
+                    <!-- 손익분기점 탭 -->
+                    <div class="tab-pane fade" id="breakeven" role="tabpanel">
+                        <div id="breakEvenAnalysis"></div>
+                    </div>
+
                     <!-- 여행 팁 탭 -->
                     <div class="tab-pane fade" id="tips" role="tabpanel">
                         <div class="tips-card">
@@ -209,103 +214,6 @@
             </div>
         </div>
     </div>
-
-    <!-- 예약 문의 섹션 -->
-    <section id="reservation" class="reservation-section">
-        <div class="container">
-            <h2 class="section-title text-center mb-5">예약 문의</h2>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="reservation-card">
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="contact-info">
-                                    <i class="fas fa-phone fa-2x mb-3"></i>
-                                    <h5>전화 문의</h5>
-                                    <p>02-1234-5678</p>
-                                    <small>평일 09:00 - 18:00</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="contact-info">
-                                    <i class="fas fa-envelope fa-2x mb-3"></i>
-                                    <h5>이메일</h5>
-                                    <p>tourman82@naver.com</p>
-                                    <small>24시간 접수 가능</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="contact-info">
-                                    <i class="fas fa-clock fa-2x mb-3"></i>
-                                    <h5>상담 시간</h5>
-                                    <p>평일 09:00 - 18:00</p>
-                                    <small>주말 및 공휴일 휴무</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <form id="reservationForm" class="reservation-form">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">이름 *</label>
-                                    <input type="text" class="form-control" required placeholder="홍길동">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">연락처 *</label>
-                                    <input type="tel" class="form-control" required placeholder="010-1234-5678">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">이메일 *</label>
-                                    <input type="email" class="form-control" required placeholder="example@email.com">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">희망 축제 *</label>
-                                    <select class="form-select" required>
-                                        <option value="">선택해주세요</option>
-                                        <option value="tomatina">라 토마티나 (스페인)</option>
-                                        <option value="oktoberfest">옥토버페스트 (독일)</option>
-                                        <option value="carnival">리우 카니발 (브라질)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">예상 인원</label>
-                                    <input type="number" class="form-control" min="1" placeholder="1">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">희망 출발 시기</label>
-                                    <input type="month" class="form-control">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">문의 내용</label>
-                                <textarea class="form-control" rows="5" placeholder="궁금하신 사항을 자유롭게 작성해주세요."></textarea>
-                            </div>
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" required>
-                                <label class="form-check-label">
-                                    개인정보 수집 및 이용에 동의합니다. *
-                                </label>
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="fas fa-paper-plane me-2"></i>문의하기
-                                </button>
-                            </div>
-                        </form>
-                        
-                        <div class="alert alert-info mt-4">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>안내:</strong> 문의 접수 후 1-2 영업일 내에 담당자가 연락드립니다. 단체 예약의 경우 별도 할인 혜택이 제공됩니다.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
         <!-- FAQ 섹션 -->
     <section id="faq" class="faq-section">

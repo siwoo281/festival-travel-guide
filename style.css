@@ -891,3 +891,40 @@ h1, h2, h3, h4 {
         margin-bottom: 1rem;
     }
 }
+
+/* 손익분기점 분석 스타일 */
+.break-even-content {
+    padding: 1rem 0;
+}
+
+.analysis-item {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-item strong {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.analysis-item span {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

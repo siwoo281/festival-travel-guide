@@ -1071,3 +1071,202 @@ h1, h2, h3, h4 {
         font-size: 1.3rem;
     }
 }
+
+/* ===== 모달 스타일 ===== */
+.modal-xl {
+    max-width: 1200px;
+}
+
+.modal-content {
+    border-radius: 20px;
+    border: none;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 2rem;
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.detail-tabs {
+    margin-top: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.detail-tabs .nav-link {
+    color: #718096;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.detail-tabs .nav-link:hover {
+    color: #667eea;
+    background: #f7fafc;
+}
+
+.detail-tabs .nav-link.active {
+    color: #667eea;
+    border-bottom: 3px solid #667eea;
+    background: transparent;
+}
+
+.detail-tab-content {
+    padding: 2rem 0;
+}
+
+.info-card {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+}
+
+.info-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    color: #667eea;
+    margin-top: 0.25rem;
+}
+
+.info-item strong {
+    display: block;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.info-item p {
+    color: #2d3748;
+    margin: 0;
+}
+
+.map-card {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    height: 100%;
+}
+
+.map-container {
+    width: 100%;
+    height: 350px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.chart-container {
+    width: 100%;
+    height: 350px;
+    position: relative;
+}
+
+.total-budget {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.total-budget h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.attraction-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.attraction-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.attraction-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.attraction-card h4 {
+    padding: 1rem;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.attraction-card p {
+    padding: 0 1rem 1rem;
+    color: #718096;
+    margin: 0;
+}
+
+#tipItems li,
+#tipWarnings li,
+#tipRecommendations li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#tipItems li:last-child,
+#tipWarnings li:last-child,
+#tipRecommendations li:last-child {
+    border-bottom: none;
+}
+
+#tipItems i {
+    color: #43e97b;
+}
+
+#tipWarnings i {
+    color: #fa709a;
+}
+
+#tipRecommendations i {
+    color: #fee140;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    .detail-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .info-card {
+        padding: 1.5rem;
+    }
+}

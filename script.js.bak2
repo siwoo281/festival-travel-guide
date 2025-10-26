@@ -1,6 +1,21 @@
 // ===== Unsplash API 설정 =====
 const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
 
+const EXCHANGERATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/KRW';
+
+// 축제 위치 및 통화 정보
+const festivalLocationInfo = {
+    tomatina: { countryCode: 'es', currency: 'EUR', currencySymbol: '€' },
+    oktoberfest: { countryCode: 'de', currency: 'EUR', currencySymbol: '€' },
+    carnival: { countryCode: 'br', currency: 'BRL', currencySymbol: 'R$' }
+};
+
+// 날씨 정보 (Mock)
+const mockWeatherData = {
+    tomatina: { temp: 28, icon: '☀️', description: '맑음' },
+    oktoberfest: { temp: 18, icon: '⛅', description: '구름 조금' },
+    carnival: { temp: 32, icon: '🌤️', description: '화창함' }
+};
 // ===== 축제 데이터 정의 =====
 const festivalsData = {
     tomatina: {

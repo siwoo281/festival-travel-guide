@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <button onclick="testClick()">클릭 테스트</button>
+    <div id="result"></div>
+    <script>
+        function testClick() {
+            document.getElementById('result').innerHTML = '클릭 작동!';
+            console.log('클릭됨');
+        }
+        
+        // festivalsData 확인
+        fetch('script.js')
+            .then(r => r.text())
+            .then(text => {
+                console.log('script.js 크기:', text.length);
+                console.log('festivalsData 포함:', text.includes('festivalsData'));
+                console.log('showFestivalDetail 포함:', text.includes('showFestivalDetail'));
+            });
+    </script>
+</body>
+</html>

@@ -153,7 +153,6 @@ const festivalsData = {
     },
     carnival: {
         id: 'carnival',
-        countryCode: "br",
         name: '리우 카니발',
         location: '브라질 리우데자네이루',
         period: '매년 2월 (사순절 시작 전)',

@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ===== 축제 카드 로딩 =====
 async function loadFestivalCards() {
-    const container = document.getElementById('festivalsGrid');
+    const container = document.getElementById('festivalCards');
     if (!container) return;
 
     container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';

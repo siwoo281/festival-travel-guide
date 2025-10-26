@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세계 축제 여행 가이드 - Festival Travel Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header-section">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">
+                        <i class="fas fa-globe-americas"></i> Festival Travel Guide
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item"><a class="nav-link" href="#festivals">축제</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#about">소개</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 히어로 섹션 -->
+    <section class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <h1 class="hero-title">세계의 축제, 당신의 여행</h1>
+            <p class="hero-subtitle">잊지 못할 축제 경험과 함께하는 완벽한 여행 가이드</p>
+            <a href="#festivals" class="btn btn-hero">축제 둘러보기</a>
+        </div>
+    </section>
+
+    <!-- 축제 카드 섹션 -->
+    <section id="festivals" class="festivals-section">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2>Featured Festivals</h2>
+                <p>세계에서 가장 인기 있는 축제를 경험하세요</p>
+            </div>
+            <div class="row" id="festivalCards">
+                <!-- 동적으로 생성됨 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 상세 정보 모달/섹션 -->
+    <div id="festivalDetail" class="festival-detail-section" style="display: none;">
+        <div class="container">
+            <button class="btn-close-detail" onclick="closeDetail()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="detail-content">
+                <!-- 헤더 이미지 -->
+                <div class="detail-header">
+                    <img id="detailHeaderImage" src="" alt="" class="detail-header-img">
+                    <div class="detail-header-overlay">
+                        <h2 id="detailTitle"></h2>
+                        <p id="detailLocation"><i class="fas fa-map-marker-alt"></i> <span></span></p>
+                    </div>
+                </div>
+
+                <!-- 탭 네비게이션 -->
+                <ul class="nav nav-tabs detail-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview" type="button">
+                            <i class="fas fa-info-circle"></i> 개요
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#attractions" type="button">
+                            <i class="fas fa-map-marked-alt"></i> 관광지
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#budget" type="button">
+                            <i class="fas fa-won-sign"></i> 경비
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tips" type="button">
+                            <i class="fas fa-lightbulb"></i> 여행 팁
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- 탭 컨텐츠 -->
+                <div class="tab-content detail-tab-content">
+                    <!-- 개요 탭 -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-7">
+                                <div class="info-card">
+                                    <h3>축제 정보</h3>
+                                    <div class="info-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <div>
+                                            <strong>기간</strong>
+                                            <p id="detailPeriod"></p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-users"></i>
+                                        <div>
+                                            <strong>추천 대상</strong>
+                                            <p id="detailTarget"></p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-file-alt"></i>
+                                        <div>
+                                            <strong>설명</strong>
+                                            <p id="detailDescription"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="map-card">
+                                    <h3>위치</h3>
+                                    <div id="detailMap" class="map-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 관광지 탭 -->
+                    <div class="tab-pane fade" id="attractions" role="tabpanel">
+                        <div id="attractionsList"></div>
+                    </div>
+
+                    <!-- 경비 탭 -->
+                    <div class="tab-pane fade" id="budget" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="budget-card">
+                                    <h3>예상 경비 상세</h3>
+                                    <div id="budgetDetails"></div>
+                                    <div class="budget-total">
+                                        <strong>총 예상 경비</strong>
+                                        <span id="budgetTotal"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="budget-card">
+                                    <h3>경비 분포</h3>
+                                    <canvas id="budgetChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 여행 팁 탭 -->
+                    <div class="tab-pane fade" id="tips" role="tabpanel">
+                        <div class="tips-card">
+                            <h3><i class="fas fa-lightbulb"></i> 여행 팁</h3>
+                            <div id="tipsContent"></div>
+                        </div>
+                        <div class="tips-card">
+                            <h3><i class="fas fa-suitcase"></i> 준비물</h3>
+                            <div id="preparationContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ 섹션 -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2>자주 묻는 질문</h2>
+                <p>축제 여행에 대해 궁금한 점을 해결하세요</p>
+            </div>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            축제 예약은 언제 해야 하나요?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            인기 축제의 경우 최소 3-6개월 전에 항공권과 숙박을 예약하는 것이 좋습니다. 특히 옥토버페스트나 리우 카니발의 경우 숙박비가 급등하므로 조기 예약이 필수입니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            비자가 필요한가요?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            스페인과 독일은 쉥겐 비자가 필요하며 90일 무비자 체류가 가능합니다. 브라질은 2024년부터 한국 국민에 대해 90일 무비자 입국이 가능합니다. 여권 유효기간은 6개월 이상 남아있어야 합니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            혼자 여행해도 안전한가요?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            대부분의 축제는 관광객이 많아 비교적 안전하지만, 소매치기에 주의해야 합니다. 귀중품은 호텔에 보관하고, 축제 현장에서는 최소한의 현금만 지참하세요. 야간 이동 시에는 택시를 이용하는 것이 좋습니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            현지 언어를 못해도 되나요?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            주요 관광지와 축제 현장에서는 영어가 통하는 편입니다. 하지만 기본적인 현지어 인사말과 구글 번역기 앱을 준비하면 더욱 편리합니다. 특히 음식 주문이나 교통 이용 시 유용합니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Festival Travel Guide</h4>
+                    <p>세계의 축제와 함께하는 완벽한 여행을 위한 가이드</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="#festivals">축제 목록</a></li>
+                        <li><a href="#about">소개</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> info@festivaltravelguide.com</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Festival Travel Guide. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

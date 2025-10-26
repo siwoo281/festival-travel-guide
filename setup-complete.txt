@@ -1,0 +1,11 @@
+✅ Festival Travel Guide 프로젝트 생성 완료!
+
+다음 파일들이 생성되었습니다:
+- index.html (메인 HTML 파일)
+- style.css (스타일시트)
+- script.js (JavaScript 로직)
+- README.md (프로젝트 설명서)
+- QUICKSTART.md (빠른 시작 가이드)
+- .gitignore (Git 설정)
+
+GitHub에 업로드하려면 QUICKSTART.md 파일을 참고하세요!

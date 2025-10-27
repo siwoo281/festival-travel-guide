@@ -1,6 +1,9 @@
 // ===== API 설정 =====
-const UNSPLASH_ACCESS_KEY = 'Id8OlS5V38OdwbDrUvNzBmnTao4U6dyPbOPyZwcNtAI';
-const OPENWEATHER_API_KEY = ''; // https://openweathermap.org/api 에서 무료 키 발급 가능
+// 🔒 보안: 프로덕션에서는 환경변수 사용 권장
+// GitHub Actions: secrets.UNSPLASH_KEY
+// Netlify/Vercel: Environment Variables 설정
+const UNSPLASH_ACCESS_KEY = window.ENV?.UNSPLASH_KEY || 'YOUR_UNSPLASH_ACCESS_KEY_HERE';
+const OPENWEATHER_API_KEY = window.ENV?.OPENWEATHER_KEY || ''; // https://openweathermap.org/api 에서 무료 키 발급 가능
 const EXCHANGERATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/KRW';
 
 // ===== 축제 데이터 소스 구성 =====

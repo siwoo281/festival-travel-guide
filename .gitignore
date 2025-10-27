@@ -19,6 +19,7 @@ yarn-debug.log*
 # 환경 변수 (API 키 보호)
 .env
 .env.local
+env.js
 
 # 의존성
 node_modules/
@@ -26,3 +27,18 @@ node_modules/
 # 빌드 결과
 dist/
 build/
+
+# 백업 및 임시 파일
+*.backup
+*.bak
+*.bak2
+*.original
+*_backup*
+temp_*.js
+test-*.html
+debug-*.html
+simple-test.html
+
+# 서버 관련
+server.pid
+server.log

@@ -744,11 +744,11 @@ function restartQuiz() {
 // ===== 페이지 로드 시 초기화 =====
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        console.log('🎉 페이지 로드 완료!');
-        console.log('festivalsData:', Object.keys(festivalsData));
-        console.log('FESTIVAL_SOURCE_CONFIG:', window.FESTIVAL_SOURCE_CONFIG);
+        logger.info('페이지 로드 완료!');
+        logger.debug('festivalsData:', Object.keys(festivalsData));
+        logger.debug('FESTIVAL_SOURCE_CONFIG:', window.FESTIVAL_SOURCE_CONFIG);
         // 메인 히어로 배경을 축제 분위기로 동적 설정 (API 실패 시 기본 CSS 이미지 유지)
-        try { setHeroFestivalBackground(); } catch(e) { console.warn('히어로 배경 설정 실패:', e?.message || e); }
+        try { setHeroFestivalBackground(); } catch(e) { logger.warn('히어로 배경 설정 실패:', e?.message || e); }
         
         // 외부/로컬 데이터 소스에서 추가 축제 로드 후 카드 렌더링
         await tryLoadExternalFestivals();
@@ -757,36 +757,132 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadFestivalCards();
         
         setupModalHandlers();
-        console.log('✅ 초기화 완료!');
+        logger.success('초기화 완료!');
     } catch (err) {
-        console.error('🌋 초기화 중 오류:', err);
-        console.error('오류 스택:', err.stack);
+        logger.error('초기화 중 오류:', err);
+        logger.debug('오류 스택:', err.stack);
         showErrorOverlay(err);
     }
 });
 
 function showErrorOverlay(error) {
     try {
+        // 기존 오버레이가 있으면 제거
+        const existing = document.querySelector('.error-overlay');
+        if (existing) existing.remove();
+        
         const overlay = document.createElement('div');
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.right = '0';
-        overlay.style.background = '#ffecec';
-        overlay.style.color = '#b00020';
-        overlay.style.padding = '10px 16px';
-        overlay.style.zIndex = '9999';
-        overlay.style.fontFamily = 'monospace';
-        overlay.style.fontSize = '12px';
-        overlay.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        overlay.className = 'error-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            z-index: 9999;
+            font-family: 'Pretendard Variable', sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.flex = '1';
+        
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight: 600; font-size: 14px; margin-bottom: 4px;';
+        title.innerHTML = '⚠️ 일시적인 오류가 발생했습니다';
+        
         const msg = document.createElement('div');
-        msg.textContent = `오류: ${error?.message || error}`;
-        const st = document.createElement('pre');
-        st.textContent = (error?.stack || '').split('\n').slice(0,5).join('\n');
-        overlay.appendChild(msg);
-        overlay.appendChild(st);
+        msg.style.cssText = 'font-size: 12px; opacity: 0.9;';
+        
+        // 사용자 친화적 메시지
+        const friendlyMessage = getFriendlyErrorMessage(error);
+        msg.textContent = friendlyMessage;
+        
+        content.appendChild(title);
+        content.appendChild(msg);
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕';
+        closeBtn.style.cssText = `
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        `;
+        closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255,255,255,0.3)';
+        closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255,255,255,0.2)';
+        closeBtn.onclick = () => overlay.remove();
+        
+        overlay.appendChild(content);
+        overlay.appendChild(closeBtn);
         document.body.appendChild(overlay);
-    } catch {}
+        
+        // 10초 후 자동 제거
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.style.animation = 'slideUp 0.3s ease-out';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }, 10000);
+        
+        // 개발 모드에서만 상세 로그
+        if (logger.isDevelopment) {
+            logger.error('상세 오류:', error);
+            logger.debug('스택:', error?.stack);
+        }
+    } catch (e) {
+        logger.error('에러 오버레이 표시 실패:', e);
+    }
+}
+
+/**
+ * 사용자 친화적 에러 메시지 생성
+ */
+function getFriendlyErrorMessage(error) {
+    const errorStr = error?.message || String(error);
+    
+    if (errorStr.includes('fetch') || errorStr.includes('network')) {
+        return '네트워크 연결을 확인해주세요. 잠시 후 다시 시도해주세요.';
+    }
+    if (errorStr.includes('timeout')) {
+        return '요청 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
+    }
+    if (errorStr.includes('API')) {
+        return '데이터를 불러오는 중 문제가 발생했습니다.';
+    }
+    
+    return '페이지를 새로고침하거나 잠시 후 다시 시도해주세요.';
+}
+
+// CSS 애니메이션 추가
+if (!document.querySelector('#error-animations')) {
+    const style = document.createElement('style');
+    style.id = 'error-animations';
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // ===== 히어로 섹션 배경 동적 설정 =====
@@ -844,22 +940,22 @@ async function setHeroFestivalBackground() {
             localStorage.setItem(CACHE_KEY, JSON.stringify({ base, ts: Date.now() }));
         } catch {}
     } catch (e) {
-        console.warn('⚠️ 히어로 이미지 로드 실패, 기본 이미지 유지:', e?.message || e);
+        logger.warn('⚠️ 히어로 이미지 로드 실패, 기본 이미지 유지:', e?.message || e);
         hero.style.backgroundImage = `url('${fallback}')`;
     }
 }
 
 // ===== 축제 카드 로딩 =====
 async function loadFestivalCards() {
-    console.log('🔍 카드 로딩 시작...');
+    logger.debug('🔍 카드 로딩 시작...');
     const container = document.getElementById('festivalCards');
     
     if (!container) {
-        console.error('❌ festivalCards 컨테이너를 찾을 수 없습니다!');
+        logger.error('❌ festivalCards 컨테이너를 찾을 수 없습니다!');
         return;
     }
     
-    console.log('✅ 컨테이너 찾음:', container);
+    logger.debug('✅ 컨테이너 찾음:', container);
     
     // 스켈레톤 UI 표시
     showSkeletonCards(container);
@@ -869,14 +965,14 @@ async function loadFestivalCards() {
         let skipped = 0;
         const allFestivals = getAllFestivals();
         const total = Object.keys(allFestivals).length;
-        console.log('📦 전체 축제 목록:', total, '개', allFestivals);
+        logger.debug('📦 전체 축제 목록:', total, '개', allFestivals);
 
         // 스켈레톤 제거
         container.innerHTML = '';
 
         for (const [key, festival] of Object.entries(allFestivals)) {
             try {
-                console.log(`📝 카드 생성 중 [${count + skipped + 1}/${total}]: ${festival.name}`);
+                logger.debug(`📝 카드 생성 중 [${count + skipped + 1}/${total}]: ${festival.name}`);
                 const imageUrl = await fetchUnsplashImage(festival.imageQuery, festival.fallbackImage);
                 const finalImage = imageUrl || optimizeFallbackImage(festival.fallbackImage);
                 const card = createFestivalCard(festival, finalImage);
@@ -884,16 +980,16 @@ async function loadFestivalCards() {
                 count++;
             } catch (e) {
                 skipped++;
-                console.warn(`⚠️ 카드 생성 실패(스킵): ${festival?.id || key} -`, e?.message || e);
+                logger.warn(`⚠️ 카드 생성 실패(스킵): ${festival?.id || key} -`, e?.message || e);
                 continue;
             }
         }
-        console.log(`✅ 카드 생성 완료: ${count}개, 스킵: ${skipped}개 / 총 ${total}개`);
+        logger.debug(`✅ 카드 생성 완료: ${count}개, 스킵: ${skipped}개 / 총 ${total}개`);
 
         // 이미지 Lazy Loading 적용
         initLazyLoadImages();
     } catch (error) {
-        console.error('❌ 카드 로딩 에러:', error);
+        logger.error('❌ 카드 로딩 에러:', error);
         container.innerHTML = '<div class="col-12 text-center text-danger">축제 정보를 불러올 수 없습니다.</div>';
     }
 }
@@ -971,21 +1067,21 @@ function getAllFestivals() {
 
 async function tryLoadExternalFestivals() {
     const cfg = window.FESTIVAL_SOURCE_CONFIG || {};
-    console.log('🔧 외부 데이터 로드 시작, 설정:', cfg);
+    logger.debug('🔧 외부 데이터 로드 시작, 설정:', cfg);
     const merged = {};
 
     // 1) 로컬 CSV
     if (cfg.enableLocalCsv && cfg.localCsvUrl) {
-        console.log(`📂 로컬 CSV 시도: ${cfg.localCsvUrl}`);
+        logger.debug(`📂 로컬 CSV 시도: ${cfg.localCsvUrl}`);
         try {
             const fromLocal = await loadFestivalsFromCsv(cfg.localCsvUrl);
             Object.assign(merged, indexById(fromLocal));
-            console.log(`📄 로컬 CSV에서 ${fromLocal.length}개 축제 로드 완료`, fromLocal);
+            logger.debug(`📄 로컬 CSV에서 ${fromLocal.length}개 축제 로드 완료`, fromLocal);
         } catch (e) {
-            console.error('❌ 로컬 CSV 로드 실패:', e);
+            logger.error('❌ 로컬 CSV 로드 실패:', e);
         }
     } else {
-        console.log('⏭️ 로컬 CSV 비활성화 또는 URL 미지정');
+        logger.debug('⏭️ 로컬 CSV 비활성화 또는 URL 미지정');
     }
 
     // 2) Google Sheets CSV
@@ -993,9 +1089,9 @@ async function tryLoadExternalFestivals() {
         try {
             const fromSheet = await loadFestivalsFromCsv(cfg.sheetCsvUrl, cfg.sheetFieldMap);
             Object.assign(merged, indexById(fromSheet));
-            console.log(`🧾 Google Sheets에서 ${fromSheet.length}개 축제 로드`);
+            logger.debug(`🧾 Google Sheets에서 ${fromSheet.length}개 축제 로드`);
         } catch (e) {
-            console.warn('시트 CSV 로드 실패:', e.message);
+            logger.warn('시트 CSV 로드 실패:', e.message);
         }
     }
 
@@ -1004,13 +1100,13 @@ async function tryLoadExternalFestivals() {
         try {
             const fromKto = await window.loadFestivalsFromKTO();
             Object.assign(merged, indexById(fromKto));
-            console.log(`🇰🇷 TourAPI에서 ${fromKto.length}개 축제 로드`);
+            logger.debug(`🇰🇷 TourAPI에서 ${fromKto.length}개 축제 로드`);
         } catch (e) {
-            console.warn('TourAPI 로드 실패(키/프록시/CORS 확인):', e.message);
+            logger.warn('TourAPI 로드 실패(키/프록시/CORS 확인):', e.message);
         }
     }
 
-    console.log('✅ 외부 데이터 병합 완료:', Object.keys(merged).length, '개');
+    logger.debug('✅ 외부 데이터 병합 완료:', Object.keys(merged).length, '개');
     window.dynamicFestivals = merged;
 }
 
@@ -1787,7 +1883,7 @@ async function fetchUnsplashImage(query, fallback) {
         
         return optimizeFallbackImage(fallback);
     } catch (error) {
-        console.log('⚠️ Unsplash API 실패, fallback 이미지 사용:', error.message);
+        logger.debug('⚠️ Unsplash API 실패, fallback 이미지 사용:', error.message);
         return optimizeFallbackImage(fallback);
     }
 }
@@ -1933,16 +2029,16 @@ function setupModalHandlers() {
 
 // ===== 축제 상세 정보 표시 =====
 async function showFestivalDetail(festivalId) {
-    console.log('🎯 클릭됨! 축제 ID:', festivalId);
+    logger.debug('🎯 클릭됨! 축제 ID:', festivalId);
     // 모든 축제 (기본 + CSV)에서 검색
     const allFestivals = getAllFestivals();
     const festival = allFestivals[festivalId];
     if (!festival) {
-        console.error('❌ 축제를 찾을 수 없습니다:', festivalId);
-        console.log('사용 가능한 축제 ID:', Object.keys(allFestivals));
+        logger.error('❌ 축제를 찾을 수 없습니다:', festivalId);
+        logger.debug('사용 가능한 축제 ID:', Object.keys(allFestivals));
         return;
     }
-    console.log('✅ 축제 정보:', festival.name);
+    logger.debug('✅ 축제 정보:', festival.name);
 
     // 모달에 festivalId 저장 (시뮬레이터 연동용)
     const modalElement = document.getElementById('festivalModal');
@@ -1992,7 +2088,7 @@ async function showFestivalDetail(festivalId) {
         `;
 
         // 초기 로컬 통화 표시
-        try { await updateLocalCurrencyLine(festival, localCurrency); } catch(e) { console.warn(e); }
+        try { await updateLocalCurrencyLine(festival, localCurrency); } catch(e) { logger.warn(e); }
 
         // 통화 셀렉트 변경 시 메인 표시 전환
         const sel = document.getElementById('priceCurrencySelect');
@@ -2056,20 +2152,20 @@ async function showFestivalDetail(festivalId) {
     }
 
     // 8) 관광/경비/팁/패키지
-    try { displayAttractions(festival.attractions || []); } catch(e) { console.warn(e); }
-    try { displayBudgetChart(festival.budget || {}, festival.price || ''); } catch(e) { console.warn(e); }
-    try { displayTravelTips(festival.tips || { 준비물: [], 주의사항: [], 추천: [] }); } catch(e) { console.warn(e); }
-    try { if (festival.packageDetails) displayPackageInfo(festival.packageDetails); } catch(e) { console.warn(e); }
+    try { displayAttractions(festival.attractions || []); } catch(e) { logger.warn(e); }
+    try { displayBudgetChart(festival.budget || {}, festival.price || ''); } catch(e) { logger.warn(e); }
+    try { displayTravelTips(festival.tips || { 준비물: [], 주의사항: [], 추천: [] }); } catch(e) { logger.warn(e); }
+    try { if (festival.packageDetails) displayPackageInfo(festival.packageDetails); } catch(e) { logger.warn(e); }
 
     // 8.5) D-Day 배지
-    try { updateDDayBadge(festival.nextDate); } catch(e) { console.warn(e); }
+    try { updateDDayBadge(festival.nextDate); } catch(e) { logger.warn(e); }
 
     // 9) 손익분기/티어/시뮬레이터/업셀링
-    try { displayBreakEvenAnalysis(festivalId); } catch(e) { console.warn(e); }
-    try { displayProductTiers(festivalId); } catch(e) { console.warn(e); }
-    try { initDemandSimulator(festivalId); } catch(e) { console.warn(e); }
-    try { displayTierValueProps(festivalId); } catch(e) { console.warn(e); }
-    try { displayUpsellOptions(festivalId); } catch(e) { console.warn(e); }
+    try { displayBreakEvenAnalysis(festivalId); } catch(e) { logger.warn(e); }
+    try { displayProductTiers(festivalId); } catch(e) { logger.warn(e); }
+    try { initDemandSimulator(festivalId); } catch(e) { logger.warn(e); }
+    try { displayTierValueProps(festivalId); } catch(e) { logger.warn(e); }
+    try { displayUpsellOptions(festivalId); } catch(e) { logger.warn(e); }
 
     // 10) 모달 표시
     const modal = new bootstrap.Modal(document.getElementById('festivalModal'));
@@ -2368,7 +2464,7 @@ function togglePlanner(event, festivalId, baseDays) {
     if (nowHidden) {
         panel.removeAttribute('hidden');
         // 초기 요약 업데이트 한번
-        try { updatePlanEstimate(festivalId, baseDays); } catch (e) { console.warn(e); }
+        try { updatePlanEstimate(festivalId, baseDays); } catch (e) { logger.warn(e); }
         // 스크롤 살짝 이동
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
@@ -2815,7 +2911,7 @@ function prefillPlannerFromTier(festivalId, pricePerPerson, tierName) {
         try { 
             updatePlanEstimate(festivalId); 
         } catch(e) {
-            console.error('견적 업데이트 실패:', e);
+            logger.error('견적 업데이트 실패:', e);
         }
     }
     

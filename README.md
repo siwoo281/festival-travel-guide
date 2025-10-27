@@ -18,6 +18,10 @@
 - 📊 **시각화 차트**: Chart.js를 활용한 경비 분포 그래프
 - 🖼️ **자동 이미지 로딩**: Unsplash API를 통한 고품질 이미지 자동 삽입
 - 📱 **반응형 디자인**: 모바일, 태블릿, 데스크탑 모두 지원
+- 🧩 **인카드 패키지 기획**: 카드 안에서 날짜/인원/포함 항목 선택 후 즉시 견적 확인 및 저장/공유
+- 🧩 **인카드 패키지 기획**: 카드 안에서 날짜/인원/포함 항목 선택 후 즉시 견적 확인 및 저장/공유
+- 🧱 **상품 구성 탭**: Basic/Standard/Premium 티어와 포함 항목 차이, 즉시 적용 버튼 제공
+- 📈 **수요·수익 시뮬레이터**: 판매가/모객/비용 변수로 매출·이익·마진·손익분기점 계산
 
 ## 🚀 시작하기
 
@@ -49,7 +53,55 @@ python -m http.server 8000
 npx serve
 ```
 
-## 🔑 Unsplash API 설정 (선택사항)
+## � 축제 데이터 자동 로드(로컬 CSV/Google Sheets)
+
+기본 3개 축제 외에도 외부 소스에서 추가 축제를 자동으로 불러와 카드로 렌더링합니다.
+
+- 기본값: `data/festivals.sample.csv`를 읽어 즉시 10여 개 축제가 추가됩니다.
+- 선택: Google Sheets를 "웹에 게시"하여 CSV URL을 연결하면 실시간으로 시트 데이터를 반영할 수 있습니다.
+
+설정은 `api-config.js`의 `FESTIVAL_SOURCE_CONFIG`에서 변경합니다.
+
+예시
+
+- 로컬 CSV 사용(기본값)
+```
+enableLocalCsv: true,
+localCsvUrl: 'data/festivals.sample.csv'
+```
+
+- Google Sheets CSV 사용
+```
+enableSheet: true,
+sheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv',
+sheetFieldMap: {
+   id: 'id', name: 'name', location: 'location', period: 'period', duration: 'duration',
+   priceKRW: 'priceKRW', description: 'description', countryCode: 'countryCode',
+   imageQuery: 'imageQuery', fallbackImage: 'fallbackImage', mapUrl: 'mapUrl'
+}
+```
+
+CSV 필드 설명(권장)
+- id: 축제 고유 ID(미지정 시 이름 기반 슬러그 생성)
+- name: 축제명
+- location: 위치(도시/국가)
+- period: 개최 시기(문자열)
+- duration: 일정(숫자 또는 "5일" 형식)
+- priceKRW: 1인 기준 가격(숫자 또는 ₩포함 문자열)
+- description: 설명
+- countryCode: ISO 3166-1 alpha-2(예: kr, jp, us)
+- imageQuery: Unsplash 검색어
+- fallbackImage: 이미지 URL(Unsplash 실패 시 사용)
+- mapUrl: Google Maps embed URL(선택)
+
+동작 방식
+- 초기 로드 시 로컬 CSV → Google Sheets 순으로 데이터를 불러와 표준 스키마로 정규화 후 기존 `festivalsData`와 병합합니다.
+- 데이터가 부족한 경우 합리적인 기본값으로 보완하여 카드가 깨지지 않도록 처리합니다.
+
+주의
+- 외부 API/시트는 CORS 정책에 따라 접근이 제한될 수 있습니다. Google Sheets의 경우 "웹에 게시"된 CSV는 일반적으로 접근 가능합니다.
+
+## �🔑 Unsplash API 설정 (선택사항)
 
 이미지 품질을 향상시키려면 Unsplash API 키를 설정하세요:
 
@@ -101,6 +153,18 @@ festival-travel-guide/
   - **관광지**: 추천 관광지 리스트 (이미지 포함)
   - **경비**: 상세 예산 분석 및 차트
   - **여행 팁**: 실용적인 여행 조언 및 준비물
+
+### 2-1. 인카드 패키지 기획 사용법
+- 메인 목록에서 축제 카드의 "패키지 기획" 버튼을 클릭합니다.
+- 출발일, 여행 일수, 인원, 포함 항목(항공권/숙박/식사/입장료/교통/기타)을 선택합니다.
+- "견적 계산"을 누르면 1인/총 예상가가 카드 내에서 바로 계산되어 표시됩니다.
+- "계획 저장"으로 현재 구성을 로컬에 저장하고, "요약 복사"로 메신저/문서에 붙여넣을 수 있습니다.
+- "자세히 보기" 버튼은 기존처럼 상세 모달(개요/패키지 정보/관광지/경비/팁 등)을 엽니다.
+
+### 2-2. 상품 구성 탭과 시뮬레이터
+- 상세 모달의 "상품 구성" 탭에서 Basic/Standard/Premium 가격과 포함 항목을 비교할 수 있습니다.
+- "이 가격으로 기획" 버튼을 누르면 카드 내 기획 패널의 1인 예산이 해당 가격으로 채워집니다.
+- 오른쪽의 시뮬레이터에서 판매가, 모객 수, 고정비, 변동비를 입력하고 "계산"을 누르면 매출·이익·마진·손익분기점이 즉시 계산됩니다.
 
 ### 3. 반응형 디자인
 - 모바일: 1단 레이아웃

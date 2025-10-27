@@ -1,8 +1,6 @@
 // ===== API 통합 기능 =====
 console.log('🚀 API 통합 스크립트 로드됨');
 
-const EXCHANGERATE_API_URL = 'https://api.exchangerate-api.com/v4/latest/KRW';
-
 const festivalLocationInfo = {
     tomatina: { countryCode: 'es', currency: 'EUR', currencySymbol: '€' },
     oktoberfest: { countryCode: 'de', currency: 'EUR', currencySymbol: '€' },
@@ -57,12 +55,11 @@ async function enhanceFestivalCards() {
     const rates = await getExchangeRates();
     console.log('💰 환율 정보:', rates ? '✅ 로드됨' : '❌ 실패');
     
-    festivalCardsDiv.forEach((card, index) => {
-        const festivalIds = ['tomatina', 'oktoberfest', 'carnival'];
-        const festivalId = festivalIds[index];
+    festivalCardsDiv.forEach((card) => {
+        const festivalId = card?.dataset?.festivalId;
         
         if (!festivalId) {
-            console.log(`⚠️ 카드 ${index}: festivalId 없음`);
+            console.log(`⚠️ 카드: festivalId 없음(data-festival-id 속성)`);
             return;
         }
         
@@ -75,7 +72,7 @@ async function enhanceFestivalCards() {
             return;
         }
         
-        console.log(`✨ 카드 ${index} (${festival.name}) 강화 중...`);
+    console.log(`✨ 카드 (${festival.name}) 강화 중...`);
         
         // 국기 추가
         const flagImg = document.createElement('img');
@@ -102,7 +99,7 @@ async function enhanceFestivalCards() {
         }
         
         // 현지 통화 가격 추가
-        if (rates && rates[locationInfo.currency]) {
+        if (rates && locationInfo && rates[locationInfo.currency]) {
             const priceElement = card.querySelector('.festival-price');
             if (priceElement) {
                 const localPrice = convertToLocalCurrency(festival.price, rates[locationInfo.currency]);

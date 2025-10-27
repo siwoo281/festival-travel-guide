@@ -8,7 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="preconnect" href="https://api.unsplash.com" crossorigin>
+    <!-- Pretendard 폰트 (한글) + Inter 폰트 (영문) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -43,6 +47,44 @@
             <h1 class="hero-title">세계의 축제, 당신의 여행</h1>
             <p class="hero-subtitle">잊지 못할 축제 경험과 함께하는 완벽한 여행 가이드</p>
             <a href="#festivals" class="btn btn-hero">축제 둘러보기</a>
+        </div>
+    </section>
+
+    <!-- 관광 동기 퀴즈 섹션 -->
+    <section class="quiz-section">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2><i class="fas fa-compass"></i> 나에게 딱 맞는 축제는?</h2>
+                <p>관광 동기 이론(Push & Pull Factors)에 기반한 추천 시스템</p>
+            </div>
+            <div class="quiz-container" id="quizContainer">
+                <div class="quiz-intro" id="quizIntro">
+                    <h3 class="mb-2">나에게 딱 맞는 축제 찾기</h3>
+                    <p class="text-muted mb-3">간단한 4문항으로 추천해 드려요.</p>
+                    <button class="btn btn-primary btn-lg" onclick="startQuiz()">
+                        <i class="fas fa-play-circle"></i> 퀴즈 시작하기
+                    </button>
+                </div>
+                <div class="quiz-questions" id="quizQuestions" style="display: none;">
+                    <div class="progress mb-4">
+                        <div class="progress-bar" id="quizProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="question-card" id="questionCard">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                    <div class="quiz-nav mt-4">
+                        <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" style="display: none;">
+                            <i class="fas fa-chevron-left"></i> 이전
+                        </button>
+                        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
+                            다음 <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="quiz-result" id="quizResult" style="display: none;">
+                    <!-- 결과가 동적으로 표시됨 -->
+                </div>
+            </div>
         </div>
     </section>
 
@@ -156,7 +198,10 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="festivalModalLabel"></h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="modal-title" id="festivalModalLabel"></h5>
+                        <span id="dDayBadge" class="badge rounded-pill d-none"></span>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -167,6 +212,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#package" role="tab">패키지 정보</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#product" role="tab">상품 구성</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#attractions" role="tab">주요 관광지</a>
@@ -195,37 +243,94 @@
                     <div class="tab-content detail-tab-content">
                         <!-- 개요 탭 -->
                         <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                            <div class="row">
-                                <div class="col-lg-7">
+                            <!-- 축제 대표 이미지 -->
+                            <div class="festival-hero-image" id="festivalHeroImage"></div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-lg-8">
                                     <div class="info-card">
-                                        <h3>축제 정보</h3>
-                                        <div class="info-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <div>
-                                                <strong>기간</strong>
-                                                <p id="detailPeriod"></p>
+                                        <div class="festival-header-info">
+                                            <div class="festival-title-section">
+                                                <h2 id="detailFestivalName" class="festival-main-title"></h2>
+                                                <p id="detailLocation" class="festival-location-text">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span></span>
+                                                </p>
                                             </div>
+                                            <div class="festival-price-badge" id="detailPriceBadge"></div>
                                         </div>
-                                        <div class="info-item">
-                                            <i class="fas fa-users"></i>
-                                            <div>
-                                                <strong>추천 대상</strong>
-                                                <p id="detailTarget"></p>
+                                    </div>
+
+                                    <div class="info-card mt-3">
+                                        <h3><i class="fas fa-info-circle text-primary"></i> 축제 소개</h3>
+                                        <div class="festival-description-full" id="detailDescriptionFull"></div>
+                                    </div>
+
+                                    <div class="info-card mt-3">
+                                        <h3><i class="fas fa-calendar-check text-success"></i> 기본 정보</h3>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <div>
+                                                        <strong>개최 기간</strong>
+                                                        <p id="detailPeriod"></p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <i class="fas fa-file-alt"></i>
-                                            <div>
-                                                <strong>설명</strong>
-                                                <p id="detailDescription"></p>
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-clock"></i>
+                                                    <div>
+                                                        <strong>여행 일수</strong>
+                                                        <p id="detailDuration"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-users"></i>
+                                                    <div>
+                                                        <strong>추천 대상</strong>
+                                                        <p id="detailTarget"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="info-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <div>
+                                                        <strong>예상 비용</strong>
+                                                        <p id="detailPrice"></p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- 축제 하이라이트 -->
+                                    <div class="info-card mt-3">
+                                        <h3><i class="fas fa-star text-warning"></i> 축제 하이라이트</h3>
+                                        <div id="festivalHighlights" class="highlights-grid"></div>
+                                    </div>
                                 </div>
-                                <div class="col-lg-5">
-                                    <div class="map-card">
-                                        <h3>위치</h3>
+                                
+                                <div class="col-lg-4">
+                                    <div class="map-card sticky-map">
+                                        <h3><i class="fas fa-map-marked-alt"></i> 위치</h3>
                                         <div id="detailMap" class="map-container"></div>
+                                        <button class="btn btn-sm btn-outline-primary mt-2 w-100" id="openMapBtn">
+                                            <i class="fas fa-external-link-alt"></i> 지도 크게 보기
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="openDirectionsBtn">
+                                            <i class="fas fa-route"></i> 길찾기(구글 지도)
+                                        </button>
+                                    </div>
+
+                                    <!-- 빠른 정보 카드 -->
+                                    <div class="info-card mt-3">
+                                        <h3><i class="fas fa-bolt text-warning"></i> 빠른 정보</h3>
+                                        <div id="quickInfo" class="quick-info-list"></div>
                                     </div>
                                 </div>
                             </div>
@@ -253,6 +358,78 @@
                                         <h3><i class="fas fa-users text-warning"></i> 단체 할인</h3>
                                         <div id="packageDiscount"></div>
                                         <p class="mt-3"><strong>상품코드:</strong> <span id="packageCode" class="badge bg-primary"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 상품 구성 탭 -->
+                        <div class="tab-pane fade" id="product" role="tabpanel">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <div class="info-card">
+                                        <h3>패키지 티어</h3>
+                                        <div id="productTiers" class="tiers-grid"></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="info-card">
+                                        <h3>수요·수익 시뮬레이터</h3>
+                                        <div id="demandSimulator">
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <label class="form-label">판매가(1인)</label>
+                                                    <input type="number" class="form-control" id="sim-price" />
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">모객 수(명)</label>
+                                                    <input type="number" class="form-control" id="sim-customers" value="50" />
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">고정비(원)</label>
+                                                    <input type="number" class="form-control" id="sim-fixed" />
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">1인 변동비(원)</label>
+                                                    <input type="number" class="form-control" id="sim-variable" />
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary mt-3" id="sim-run"><i class="fas fa-calculator"></i> 계산</button>
+                                            <div class="sim-result mt-3" id="sim-result"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-lg-7">
+                                    <div class="info-card">
+                                        <h3>티어별 가치제안</h3>
+                                        <div id="tierValueProps" class="value-prop-list"></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="info-card">
+                                        <h3>
+                                            업셀링 / 옵션
+                                            <span id="upsellCountBadge" class="badge" style="display: none;">0</span>
+                                        </h3>
+                                        <div id="upsellOptions">
+                                            <div class="options-list" id="upsellList"></div>
+                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                                <div>
+                                                    <small class="text-muted d-block">선택 옵션 합계</small>
+                                                    <strong id="upsellSum" style="font-size: 1.2rem; color: #667eea;">₩0</strong>
+                                                </div>
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    <button class="btn btn-sm btn-primary" id="applyUpsellToSim">
+                                                        <i class="fas fa-calculator"></i> 시뮬레이터에 적용
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-primary" id="applyUpsellToPlanner">
+                                                        <i class="fas fa-suitcase-rolling"></i> 기획에 적용
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -364,6 +541,9 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- 데이터 소스/설정 (외부/로컬 CSV 등) -->
+    <script src="api-config.js"></script>
+    <script src="tourapi-adapter.js"></script>
     <script src="script.js"></script>
     <script src="api-integration.js"></script>
     <script src="tourism-data.js"></script>

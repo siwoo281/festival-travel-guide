@@ -558,6 +558,9 @@ function initFestivalScores() {
     };
 }
 
+// 페이지 로드 시 초기화
+initFestivalScores();
+
 function startQuiz() {
     currentQuestionIndex = 0;
     quizAnswers = [];

@@ -800,7 +800,7 @@ window.dynamicFestivals = window.dynamicFestivals || {};
 
 function getAllFestivals() {
     // 원본 + 동적 소스 병합(기존 키 우선 유지)
-    return { ...dynamicFestivals, ...festivalsData };
+    return { ...window.dynamicFestivals, ...festivalsData };
 }
 
 async function tryLoadExternalFestivals() {

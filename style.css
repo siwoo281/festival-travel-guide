@@ -18,24 +18,58 @@
 
 /* ===== 1. 전역 스타일 & 디자인 시스템 ===== */
 :root {
+    /* Brand */
     --brand-primary: #667eea;
     --brand-secondary: #764ba2;
     --brand-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    
+
+    /* Text & Surfaces */
     --text-primary: #2C3E50;
     --text-secondary: #64748b;
-    
     --bg-white: #ffffff;
     --bg-light: #f8fafc;
     --border-color: #e2e8f0;
 
+    /* Semantic */
     --color-success: #10b981;
     --color-warning: #f59e0b;
     --color-danger: #ef4444;
 
+    /* Elevation */
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
     --shadow-md: 0 4px 10px rgba(0,0,0,0.08);
     --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+
+    /* Spacing scale (8pt system) */
+    --space-1: 4px;   /* xxs */
+    --space-2: 8px;   /* xs */
+    --space-3: 12px;  /* sm */
+    --space-4: 16px;  /* md */
+    --space-5: 20px;  /* lg */
+    --space-6: 24px;  /* xl */
+    --space-8: 32px;  /* 2xl */
+    --space-10: 40px; /* 3xl */
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    /* Typography scale */
+    --font-xs: clamp(0.78rem, 0.73rem + 0.2vw, 0.85rem);
+    --font-sm: clamp(0.9rem, 0.85rem + 0.2vw, 1rem);
+    --font-md: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+    --font-lg: clamp(1.125rem, 1.05rem + 0.4vw, 1.35rem);
+    --font-xl: clamp(1.35rem, 1.1rem + 0.8vw, 1.8rem);
+    --font-2xl: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+    --font-3xl: clamp(2.2rem, 1.6rem + 2vw, 3rem);
+
+    /* Motion */
+    --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 300ms;
 }
 
 * {
@@ -52,6 +86,26 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* 접근성: 포커스 가시성 개선 */
+:focus-visible {
+    outline: 3px solid rgba(102,126,234,0.65);
+    outline-offset: 2px;
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible,
+.detail-tabs .nav-link:focus-visible,
+.toast-close:focus-visible,
+.accordion-button:focus-visible,
+.social-links a:focus-visible,
+.festival-card:focus-visible,
+.btn-close:focus-visible {
+    outline: 3px solid rgba(102,126,234,0.75);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(102,126,234,0.15);
+    border-radius: var(--radius-sm);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -83,7 +137,7 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.01em;
     border-radius: 8px;
     padding: 0.75rem 1.5rem;
-    transition: all 0.2s ease-out;
+    transition: all var(--duration-base) ease-out;
     box-shadow: var(--shadow-sm);
 }
 
@@ -224,14 +278,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-title {
-    font-size: 4rem;
+    font-size: var(--font-3xl);
     font-weight: 800;
     margin-bottom: 1rem;
     animation: fadeInUp 1s ease;
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
+    font-size: var(--font-lg);
     margin-bottom: 2rem;
     opacity: 0.95;
     animation: fadeInUp 1s ease 0.2s both;
@@ -268,7 +322,7 @@ h1, h2, h3, h4, h5, h6 {
 .quiz-section,
 .festivals-section,
 .faq-section {
-    padding: 5rem 0;
+    padding: var(--space-8) 0;
 }
 
 .faq-section {
@@ -339,7 +393,7 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
-    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+    transition: transform var(--duration-slow) ease-out, box-shadow var(--duration-slow) ease-out;
     cursor: pointer;
     margin-bottom: 2rem;
     height: 100%;
@@ -367,6 +421,29 @@ h1, h2, h3, h4, h5, h6 {
 
 .festival-card:hover .festival-card-image img {
     transform: scale(1.08);
+}
+
+/* 카드 내부 API 보강 UI */
+.festival-weather {
+    position: absolute;
+    bottom: var(--space-2);
+    left: var(--space-2);
+    background: rgba(255,255,255,0.9);
+    color: var(--text-primary);
+    border-radius: 999px;
+    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-sm);
+    box-shadow: var(--shadow-sm);
+}
+.festival-weather img { width: 20px; height: 20px; }
+
+.festival-local-price {
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
 }
 
 .festival-card-badge {
@@ -401,7 +478,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .festival-card-title,
 .festival-content h3 { /* 중복 정의 통합 */
-    font-size: 1.5rem;
+    font-size: var(--font-xl);
     font-weight: 700;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
@@ -539,11 +616,11 @@ h1, h2, h3, h4, h5, h6 {
 .progress-bar {
     background: var(--brand-gradient);
     border-radius: 10px;
-    transition: width 0.5s ease;
+    transition: width var(--duration-slow) ease;
 }
 
 .result-icon {
-    font-size: 5rem;
+    font-size: clamp(3rem, 2rem + 2vw, 5rem);
     margin-bottom: 1rem;
     color: var(--brand-primary);
     animation: bounceIn 0.8s ease;
@@ -553,6 +630,22 @@ h1, h2, h3, h4, h5, h6 {
     0% { transform: scale(0); opacity: 0; }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); opacity: 1; }
+}
+
+/* 모션 감소 선호 설정: 과도한 애니메이션/이동 최소화 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+    .btn:hover,
+    .festival-card:hover,
+    .btn-hero:hover,
+    .detail-tabs .nav-link:hover {
+        transform: none !important;
+    }
 }
 
 /* ===== 8. 푸터 ===== */
@@ -624,7 +717,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     backdrop-filter: blur(10px);
-    animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: modalFadeIn var(--duration-slow) var(--easing-standard);
 }
 
 @keyframes modalFadeIn {

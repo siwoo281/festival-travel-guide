@@ -1913,7 +1913,7 @@ function createFestivalCard(festival, imageUrl) {
     
     return `
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="festival-card" data-festival-id="${festival.id}" onclick="togglePlanner(event, '${festival.id}', ${baseDays})">
+            <div class="festival-card" role="button" tabindex="0" data-festival-id="${festival.id}" data-base-days="${baseDays}" onclick="togglePlanner(event, '${festival.id}', ${baseDays})">
                 <div class="festival-image" style="background-image: url('${imageUrl}')">
                     ${flagUrl ? `<img src="${flagUrl}" alt="국기" class="festival-flag">` : ''}
                 </div>
@@ -1943,14 +1943,14 @@ function createFestivalCard(festival, imageUrl) {
                             <button class="btn btn-outline-secondary btn-sm" onclick="togglePlanner(event, '${festival.id}', ${baseDays})">
                                 패키지 기획
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="event && event.stopPropagation(); showFestivalDetail('${festival.id}');">자세히 보기</button>
+                            <button class="btn btn-primary btn-sm" aria-label="${festival.name} 상세 보기" onclick="event && event.stopPropagation(); showFestivalDetail('${festival.id}');">자세히 보기</button>
                         </div>
                     </div>
                 </div>
                 <div id="planner-${festival.id}" class="planner-panel" hidden onclick="event && event.stopPropagation()">
                     <div class="planner-header">
                         <h5><i class="fas fa-suitcase-rolling"></i> ${festival.name} 패키지 기획</h5>
-                        <button class="btn btn-sm btn-light" onclick="togglePlanner(event, '${festival.id}', ${baseDays})"><i class="fas fa-times"></i></button>
+                        <button class="btn btn-sm btn-light" aria-label="패널 닫기" onclick="togglePlanner(event, '${festival.id}', ${baseDays})"><i class="fas fa-times"></i></button>
                     </div>
                     <div class="planner-body">
                         <div class="row g-3">
@@ -3252,6 +3252,10 @@ class ToastSystem {
         // 토스트 컨테이너 생성
         this.container = document.createElement('div');
         this.container.className = 'toast-container';
+        // a11y: 보이스오버/스크린리더 알림 영역
+        this.container.setAttribute('role', 'status');
+        this.container.setAttribute('aria-live', 'polite');
+        this.container.setAttribute('aria-atomic', 'true');
         document.body.appendChild(this.container);
     }
 
@@ -3284,6 +3288,10 @@ class ToastSystem {
     createToast(message, type) {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
+        // a11y: 유형에 따라 알림의 긴급도 설정
+        const live = (type === 'error' || type === 'warning') ? 'assertive' : 'polite';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', live);
         
         const icons = {
             success: 'fas fa-check-circle',
@@ -3294,13 +3302,16 @@ class ToastSystem {
 
         toast.innerHTML = `
             <div class="toast-content">
-                <i class="toast-icon ${icons[type] || icons.info}"></i>
-                <span class="toast-message">${message}</span>
-                <button class="toast-close" type="button">
-                    <i class="fas fa-times"></i>
+                <i class="toast-icon ${icons[type] || icons.info}" aria-hidden="true"></i>
+                <span class="toast-message"></span>
+                <button class="toast-close" type="button" aria-label="알림 닫기">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
         `;
+        // 메시지는 텍스트로 삽입하여 잠재적 XSS 회피
+        const msgSpan = toast.querySelector('.toast-message');
+        if (msgSpan) msgSpan.textContent = String(message ?? '');
 
         return toast;
     }
@@ -3472,3 +3483,19 @@ window.addEventListener('scroll', PerformanceOptimizer.optimizeScroll(() => {
 window.addEventListener('resize', PerformanceOptimizer.optimizeResize(() => {
     // 리사이즈 관련 작업
 }));
+
+// 키보드 접근성: 카드에서 Enter/Space로 패널 토글
+document.addEventListener('keydown', (e) => {
+    const key = e.key;
+    if (key !== 'Enter' && key !== ' ') return;
+    const card = e.target && e.target.closest && e.target.closest('.festival-card');
+    if (!card) return;
+    e.preventDefault();
+    const id = card.dataset.festivalId;
+    const baseDays = parseInt(card.dataset.baseDays || '5', 10) || 5;
+    try {
+        togglePlanner(null, id, baseDays);
+    } catch (err) {
+        console.warn('카드 키보드 토글 실패:', err);
+    }
+});

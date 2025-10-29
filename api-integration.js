@@ -9,10 +9,11 @@ const festivalLocationInfo = {
     carnival: { countryCode: 'br', currency: 'BRL', currencySymbol: 'R$' }
 };
 
+// 구형 모의 날씨 데이터 (API 키 없을 때만 사용)
 const mockWeatherData = {
-    tomatina: { temp: 28, icon: '☀️' },
-    oktoberfest: { temp: 18, icon: '⛅' },
-    carnival: { temp: 32, icon: '🌤️' }
+    tomatina: { temp: 28, icon: '01d' },
+    oktoberfest: { temp: 18, icon: '02d' },
+    carnival: { temp: 32, icon: '01d' }
 };
 
 // 환율 데이터 캐시
@@ -73,7 +74,7 @@ async function enhanceFestivalCards() {
         console.log('💰 환율 정보:', rates ? '✅ 로드됨' : '❌ 실패');
     }
     
-    festivalCardsDiv.forEach((card) => {
+    for (const card of festivalCardsDiv) {
         const festivalId = card?.dataset?.festivalId;
         
         if (!festivalId) {
@@ -83,8 +84,9 @@ async function enhanceFestivalCards() {
             return;
         }
         
-        const locationInfo = festivalLocationInfo[festivalId];
-        const weatherInfo = mockWeatherData[festivalId];
+    const locationInfo = festivalLocationInfo[festivalId];
+    // 날씨 정보 시도: OpenWeather → 모의 데이터
+    let weatherInfo = null;
         const festival = festivalsData[festivalId];
         
         if (!locationInfo || !festival) {
@@ -114,15 +116,25 @@ async function enhanceFestivalCards() {
             }
             
             // 날씨 정보 추가
+            try {
+                const live = await getWeatherInfo(festivalId);
+                if (live && live.temp !== '--') {
+                    weatherInfo = { temp: live.temp, icon: live.icon };
+                } else if (mockWeatherData[festivalId]) {
+                    weatherInfo = mockWeatherData[festivalId];
+                }
+            } catch (e) {
+                if (mockWeatherData[festivalId]) weatherInfo = mockWeatherData[festivalId];
+            }
+
             if (weatherInfo) {
                 const weatherDiv = document.createElement('div');
                 weatherDiv.className = 'festival-weather';
-                weatherDiv.innerHTML = `${weatherInfo.icon} ${weatherInfo.temp}°C`;
+                const iconUrl = `https://openweathermap.org/img/wn/${weatherInfo.icon}@2x.png`;
+                const iconImg = `<img src="${iconUrl}" alt="날씨 아이콘" onerror="this.style.display='none'">`;
+                weatherDiv.innerHTML = `${iconImg} <span>${weatherInfo.temp}°C</span>`;
                 imageDiv.appendChild(weatherDiv);
-                
-                if (isDev) {
-                    console.log(`  🌤️ 날씨 추가: ${weatherInfo.temp}°C`);
-                }
+                if (isDev) console.log(`  🌤️ 날씨 추가: ${weatherInfo.temp}°C`);
             }
         } else if (isDev) {
             console.log(`  ❌ 이미지 div 없음`);
@@ -142,7 +154,7 @@ async function enhanceFestivalCards() {
                 console.log(`  ❌ 가격 요소 없음`);
             }
         }
-    });
+    }
     
     console.log('✅ API 정보 추가 완료!');
 }

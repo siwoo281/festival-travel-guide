@@ -1,5 +1,7 @@
 // ===== API 통합 기능 =====
-console.log('🚀 API 통합 스크립트 로드됨');
+if (window.ENV?.MODE === 'development') {
+    console.log('🚀 API 통합 스크립트 로드됨');
+}
 
 const festivalLocationInfo = {
     tomatina: { countryCode: 'es', currency: 'EUR', currencySymbol: '€' },
@@ -25,10 +27,14 @@ async function getExchangeRates() {
         if (!response.ok) throw new Error('환율 정보 가져오기 실패');
         const data = await response.json();
         exchangeRates = data.rates;
-        console.log('💰 환율 정보 로드 성공');
+        if (window.ENV?.MODE === 'development') {
+            console.log('💰 환율 정보 로드 성공');
+        }
         return exchangeRates;
     } catch (error) {
-        console.log('⚠️ 환율 정보 로드 실패:', error.message);
+        if (window.ENV?.MODE === 'development') {
+            console.log('⚠️ 환율 정보 로드 실패:', error.message);
+        }
         return null;
     }
 }
@@ -42,24 +48,38 @@ function convertToLocalCurrency(krwPrice, rate) {
 
 // 카드에 API 정보 추가
 async function enhanceFestivalCards() {
-    console.log('🎨 API 정보로 카드 강화 시작...');
+    const isDev = window.ENV?.MODE === 'development';
+    
+    if (isDev) {
+        console.log('🎨 API 정보로 카드 강화 시작...');
+    }
     
     const festivalCardsDiv = document.querySelectorAll('.festival-card');
-    console.log('📦 발견된 카드 수:', festivalCardsDiv.length);
+    
+    if (isDev) {
+        console.log('📦 발견된 카드 수:', festivalCardsDiv.length);
+    }
     
     if (festivalCardsDiv.length === 0) {
-        console.error('❌ 카드를 찾을 수 없습니다!');
+        if (isDev) {
+            console.error('❌ 카드를 찾을 수 없습니다!');
+        }
         return;
     }
     
     const rates = await getExchangeRates();
-    console.log('💰 환율 정보:', rates ? '✅ 로드됨' : '❌ 실패');
+    
+    if (isDev) {
+        console.log('💰 환율 정보:', rates ? '✅ 로드됨' : '❌ 실패');
+    }
     
     festivalCardsDiv.forEach((card) => {
         const festivalId = card?.dataset?.festivalId;
         
         if (!festivalId) {
-            console.log(`⚠️ 카드: festivalId 없음(data-festival-id 속성)`);
+            if (isDev) {
+                console.log(`⚠️ 카드: festivalId 없음(data-festival-id 속성)`);
+            }
             return;
         }
         
@@ -68,11 +88,15 @@ async function enhanceFestivalCards() {
         const festival = festivalsData[festivalId];
         
         if (!locationInfo || !festival) {
-            console.log(`⚠️ 카드 ${index}: 정보 없음`);
+            if (isDev) {
+                console.log(`⚠️ 카드: 정보 없음`);
+            }
             return;
         }
         
-    console.log(`✨ 카드 (${festival.name}) 강화 중...`);
+        if (isDev) {
+            console.log(`✨ 카드 (${festival.name}) 강화 중...`);
+        }
         
         // 국기 추가
         const flagImg = document.createElement('img');
@@ -84,7 +108,10 @@ async function enhanceFestivalCards() {
         if (imageDiv) {
             imageDiv.style.position = 'relative';
             imageDiv.appendChild(flagImg);
-            console.log(`  🚩 국기 추가: ${locationInfo.countryCode}`);
+            
+            if (isDev) {
+                console.log(`  🚩 국기 추가: ${locationInfo.countryCode}`);
+            }
             
             // 날씨 정보 추가
             if (weatherInfo) {
@@ -92,9 +119,12 @@ async function enhanceFestivalCards() {
                 weatherDiv.className = 'festival-weather';
                 weatherDiv.innerHTML = `${weatherInfo.icon} ${weatherInfo.temp}°C`;
                 imageDiv.appendChild(weatherDiv);
-                console.log(`  🌤️ 날씨 추가: ${weatherInfo.temp}°C`);
+                
+                if (isDev) {
+                    console.log(`  🌤️ 날씨 추가: ${weatherInfo.temp}°C`);
+                }
             }
-        } else {
+        } else if (isDev) {
             console.log(`  ❌ 이미지 div 없음`);
         }
         

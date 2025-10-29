@@ -628,7 +628,7 @@ function selectAnswer(optionIndex) {
 
 function nextQuestion() {
     if (quizAnswers[currentQuestionIndex] === undefined) {
-        alert('답변을 선택해주세요!');
+        Toast.warning('답변을 선택해주세요!');
         return;
     }
     
@@ -3184,7 +3184,7 @@ function displayUpsellOptions(festivalId) {
     applySimBtn.onclick = () => {
         const add = recalc();
         if (add === 0) {
-            alert('업셀링 옵션을 먼저 선택해주세요.');
+            Toast.warning('업셀링 옵션을 먼저 선택해주세요.');
             return;
         }
         const priceEl = document.getElementById('sim-price');
@@ -3208,7 +3208,7 @@ function displayUpsellOptions(festivalId) {
     applyPlanBtn.onclick = () => {
         const add = recalc();
         if (add === 0) {
-            alert('업셀링 옵션을 먼저 선택해주세요.');
+            Toast.warning('업셀링 옵션을 먼저 선택해주세요.');
             return;
         }
         const budgetInput = document.getElementById(`plan-${festivalId}-budget`);
@@ -3240,3 +3240,235 @@ function displayUpsellOptions(festivalId) {
         }
     };
 }
+
+// ===== 토스트 알림 시스템 =====
+class ToastSystem {
+    constructor() {
+        this.container = null;
+        this.init();
+    }
+
+    init() {
+        // 토스트 컨테이너 생성
+        this.container = document.createElement('div');
+        this.container.className = 'toast-container';
+        document.body.appendChild(this.container);
+    }
+
+    show(message, type = 'info', duration = 4000) {
+        const toast = this.createToast(message, type);
+        this.container.appendChild(toast);
+
+        // 애니메이션 시작
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+
+        // 자동 제거
+        const autoRemove = setTimeout(() => {
+            this.remove(toast);
+        }, duration);
+
+        // 수동 닫기 버튼
+        const closeBtn = toast.querySelector('.toast-close');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                clearTimeout(autoRemove);
+                this.remove(toast);
+            };
+        }
+
+        return toast;
+    }
+
+    createToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="toast-icon ${icons[type] || icons.info}"></i>
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        return toast;
+    }
+
+    remove(toast) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }
+
+    // 편의 메서드들
+    success(message, duration) {
+        return this.show(message, 'success', duration);
+    }
+
+    error(message, duration) {
+        return this.show(message, 'error', duration);
+    }
+
+    warning(message, duration) {
+        return this.show(message, 'warning', duration);
+    }
+
+    info(message, duration) {
+        return this.show(message, 'info', duration);
+    }
+}
+
+// 전역 토스트 인스턴스 생성
+const Toast = new ToastSystem();
+
+// ===== 이미지 지연 로딩 시스템 =====
+class LazyImageLoader {
+    constructor() {
+        this.imageObserver = null;
+        this.init();
+    }
+
+    init() {
+        // Intersection Observer가 지원되는지 확인
+        if ('IntersectionObserver' in window) {
+            this.imageObserver = new IntersectionObserver(
+                (entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            this.loadImage(entry.target);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                {
+                    root: null,
+                    rootMargin: '50px',
+                    threshold: 0.1
+                }
+            );
+            
+            this.observeImages();
+        } else {
+            // 폴백: 즉시 모든 이미지 로드
+            this.loadAllImages();
+        }
+    }
+
+    observeImages() {
+        const lazyImages = document.querySelectorAll('img[data-src]');
+        lazyImages.forEach(img => {
+            this.imageObserver.observe(img);
+        });
+    }
+
+    loadImage(img) {
+        const src = img.dataset.src;
+        if (!src) return;
+
+        // 로딩 상태 표시
+        img.classList.add('lazy-loading');
+        
+        // 새로운 이미지 객체 생성하여 미리 로드
+        const imageLoader = new Image();
+        
+        imageLoader.onload = () => {
+            // 이미지 로드 완료시 실제 src 설정
+            img.src = src;
+            img.classList.remove('lazy-loading');
+            img.classList.add('lazy-loaded');
+            
+            // 부드러운 페이드인 효과
+            img.style.opacity = '0';
+            img.style.transition = 'opacity 0.3s ease';
+            
+            requestAnimationFrame(() => {
+                img.style.opacity = '1';
+            });
+        };
+        
+        imageLoader.onerror = () => {
+            // 이미지 로드 실패시 fallback 이미지 설정
+            img.src = img.dataset.fallback || 'https://via.placeholder.com/800x600?text=Image+Not+Found';
+            img.classList.remove('lazy-loading');
+            img.classList.add('lazy-error');
+        };
+        
+        // 이미지 로드 시작
+        imageLoader.src = src;
+    }
+
+    loadAllImages() {
+        const lazyImages = document.querySelectorAll('img[data-src]');
+        lazyImages.forEach(img => this.loadImage(img));
+    }
+
+    // 새로운 이미지 추가시 observer에 등록
+    observe(img) {
+        if (this.imageObserver && img.dataset.src) {
+            this.imageObserver.observe(img);
+        }
+    }
+}
+
+// ===== 성능 최적화 유틸리티 =====
+class PerformanceOptimizer {
+    static debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    static throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+
+    // 스크롤 성능 최적화
+    static optimizeScroll(callback, delay = 16) {
+        return this.throttle(callback, delay);
+    }
+
+    // 리사이즈 성능 최적화
+    static optimizeResize(callback, delay = 250) {
+        return this.debounce(callback, delay);
+    }
+}
+
+// 전역 인스턴스 생성
+const LazyLoader = new LazyImageLoader();
+
+// 스크롤 최적화 적용
+window.addEventListener('scroll', PerformanceOptimizer.optimizeScroll(() => {
+    // 스크롤 관련 작업
+}));
+
+// 리사이즈 최적화 적용
+window.addEventListener('resize', PerformanceOptimizer.optimizeResize(() => {
+    // 리사이즈 관련 작업
+}));

@@ -2981,6 +2981,9 @@ function initDemandSimulator(festivalId) {
     const varEl = document.getElementById('sim-variable');
     const runBtn = document.getElementById('sim-run');
     const resultEl = document.getElementById('sim-result');
+    const elasticCb = document.getElementById('sim-auto-elastic');
+    const elasticityEl = document.getElementById('sim-elasticity');
+    const chartCtx = document.getElementById('sim-chart');
     
     if (!priceEl || !customersEl || !fixedEl || !varEl || !runBtn || !resultEl) return;
 
@@ -3007,6 +3010,10 @@ function initDemandSimulator(festivalId) {
     fixedEl.value = defaultFixed;
     varEl.value = defaultVar;
 
+    // 가격-수요 탄력성: 기준선 캡처
+    let basePrice = defaultPrice;
+    let baseCustomers = parseInt(customersEl.value || '50', 10) || 50;
+
     const calc = () => {
         // 입력 정규화 및 하한 처리
         let price = Number.isFinite(+priceEl.value) ? parseInt(priceEl.value, 10) : 0;
@@ -3017,6 +3024,15 @@ function initDemandSimulator(festivalId) {
         customers = Math.max(0, customers);
         fixed = Math.max(0, fixed);
         variable = Math.max(0, variable);
+
+        // 가격 변경 시 수요 자동 조정 (선택)
+        if (elasticCb && elasticCb.checked && basePrice > 0) {
+            const e = Number.isFinite(+elasticityEl?.value) ? parseFloat(elasticityEl.value) : 0.8;
+            const pct = (price - basePrice) / basePrice; // ΔP/P0
+            const adj = baseCustomers * (1 - (e * pct)); // Q = Q0 * (1 - e * ΔP/P0)
+            customers = Math.max(0, Math.round(adj));
+            customersEl.value = customers;
+        }
 
         const revenue = price * customers;
         const cost = fixed + (variable * customers);
@@ -3051,12 +3067,69 @@ function initDemandSimulator(festivalId) {
                 ${safetyRatio !== null ? `<div class="d-flex justify-content-between"><span>안전 마진율</span><span>${(safetyRatio*100).toFixed(1)}%</span></div>` : ''}
             </div>
         `;
+
+        // 차트 그리기
+        drawSimulatorChart(chartCtx, { price, variable, fixed, customers, breakeven });
     };
 
     runBtn.onclick = calc;
     // 입력 즉시 반영도 지원
     [priceEl, customersEl, fixedEl, varEl].forEach(el => el.addEventListener('input', calc));
+    if (elasticityEl) elasticityEl.addEventListener('input', calc);
+    if (elasticCb) elasticCb.addEventListener('change', () => {
+        // 토글 시 기준선 업데이트
+        basePrice = Number.isFinite(+priceEl.value) ? parseInt(priceEl.value, 10) : basePrice;
+        baseCustomers = Number.isFinite(+customersEl.value) ? parseInt(customersEl.value, 10) : baseCustomers;
+        calc();
+    });
     calc();
+}
+
+// 시뮬레이터 차트: Q vs Revenue/Cost/Profit
+function drawSimulatorChart(ctx, { price, variable, fixed, customers, breakeven }) {
+    if (!ctx || typeof Chart === 'undefined') return;
+    // X축 범위 결정
+    const beNum = (typeof breakeven === 'number') ? breakeven : 0;
+    const maxQ = Math.max(50, Math.ceil((customers || 0) * 1.6), Math.ceil(beNum * 1.6));
+    const step = Math.max(1, Math.round(maxQ / 40));
+    const Q = [];
+    for (let q = 0; q <= maxQ; q += step) Q.push(q);
+
+    const revenue = Q.map(q => price * q);
+    const cost = Q.map(q => fixed + variable * q);
+    const profit = Q.map((_, i) => revenue[i] - cost[i]);
+
+    if (window.simChart && typeof window.simChart.destroy === 'function') {
+        window.simChart.destroy();
+    }
+    window.simChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Q,
+            datasets: [
+                { label: '매출', data: revenue, borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.15)', tension: 0.2, fill: false },
+                { label: '총비용', data: cost, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.12)', tension: 0.2, fill: false },
+                { label: '이익', data: profit, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.12)', tension: 0.2, fill: false }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ₩${(ctx.parsed.y || 0).toLocaleString()}`
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: '모객 수(Q)' } },
+                y: { title: { display: true, text: '금액(₩)' }, ticks: { callback: (v) => `₩${Number(v).toLocaleString()}` } }
+            }
+        }
+    });
 }
 
 // ===== 티어별 가치제안 =====

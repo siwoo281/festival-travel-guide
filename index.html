@@ -379,19 +379,19 @@
                                             <div class="row g-2">
                                                 <div class="col-6">
                                                     <label class="form-label">판매가(1인)</label>
-                                                    <input type="number" class="form-control" id="sim-price" />
+                                                    <input type="number" class="form-control" id="sim-price" min="0" step="1000" />
                                                 </div>
                                                 <div class="col-6">
                                                     <label class="form-label">모객 수(명)</label>
-                                                    <input type="number" class="form-control" id="sim-customers" value="50" />
+                                                    <input type="number" class="form-control" id="sim-customers" value="50" min="0" step="1" />
                                                 </div>
                                                 <div class="col-6">
                                                     <label class="form-label">고정비(원)</label>
-                                                    <input type="number" class="form-control" id="sim-fixed" />
+                                                    <input type="number" class="form-control" id="sim-fixed" min="0" step="1000" />
                                                 </div>
                                                 <div class="col-6">
                                                     <label class="form-label">1인 변동비(원)</label>
-                                                    <input type="number" class="form-control" id="sim-variable" />
+                                                    <input type="number" class="form-control" id="sim-variable" min="0" step="1000" />
                                                 </div>
                                             </div>
                                             <button class="btn btn-sm btn-primary mt-3" id="sim-run"><i class="fas fa-calculator"></i> 계산</button>

@@ -3008,22 +3008,47 @@ function initDemandSimulator(festivalId) {
     varEl.value = defaultVar;
 
     const calc = () => {
-        const price = parseInt(priceEl.value || '0', 10);
-        const customers = parseInt(customersEl.value || '0', 10);
-        const fixed = parseInt(fixedEl.value || '0', 10);
-        const variable = parseInt(varEl.value || '0', 10);
+        // 입력 정규화 및 하한 처리
+        let price = Number.isFinite(+priceEl.value) ? parseInt(priceEl.value, 10) : 0;
+        let customers = Number.isFinite(+customersEl.value) ? parseInt(customersEl.value, 10) : 0;
+        let fixed = Number.isFinite(+fixedEl.value) ? parseInt(fixedEl.value, 10) : 0;
+        let variable = Number.isFinite(+varEl.value) ? parseInt(varEl.value, 10) : 0;
+        price = Math.max(0, price);
+        customers = Math.max(0, customers);
+        fixed = Math.max(0, fixed);
+        variable = Math.max(0, variable);
+
         const revenue = price * customers;
         const cost = fixed + (variable * customers);
         const profit = revenue - cost;
         const margin = revenue > 0 ? (profit / revenue) : 0;
-        const breakeven = (price - variable) > 0 ? Math.ceil(fixed / (price - variable)) : '—';
+
+        const contribution = Math.max(0, price - variable); // 1인 기여이익 = p - v
+        const cmRatio = price > 0 ? (contribution / price) : 0; // 기여이익률 = (p - v)/p
+        const breakeven = contribution > 0 ? Math.ceil(fixed / contribution) : '—';
+        const safetyRatio = (typeof breakeven === 'number' && customers > 0)
+            ? Math.max(-1, (customers - breakeven) / customers)
+            : null; // 안전 마진율 = (Q - Q*)/Q
+
+        // 경고 메시지 구성
+        const warnings = [];
+        if (price <= variable) warnings.push('판매가가 1인 변동비 이하입니다. 손익분기점 계산이 불가능합니다.');
+        if (typeof breakeven === 'number' && customers > 0 && customers < breakeven) {
+            warnings.push(`현재 모객 수(${customers.toLocaleString()})가 손익분기점(${breakeven.toLocaleString()}명)보다 낮아 적자입니다.`);
+        }
+
         resultEl.innerHTML = `
+            ${warnings.length ? `<div class="alert alert-danger" role="alert">${warnings.join('<br/>')}</div>` : ''}
             <div class="summary-card">
                 <div class="d-flex justify-content-between"><span><strong>매출</strong></span><span>₩${revenue.toLocaleString()}</span></div>
                 <div class="d-flex justify-content-between"><span>총비용</span><span>₩${cost.toLocaleString()}</span></div>
                 <div class="d-flex justify-content-between"><span><strong>순이익</strong></span><span class="text-primary fw-bold">₩${profit.toLocaleString()}</span></div>
                 <div class="d-flex justify-content-between"><span>마진율</span><span>${(margin*100).toFixed(1)}%</span></div>
+                <hr class="my-2"/>
+                <div class="d-flex justify-content-between"><span>기여이익(1인)</span><span>₩${contribution.toLocaleString()}</span></div>
+                <div class="d-flex justify-content-between"><span>기여이익률</span><span>${(cmRatio*100).toFixed(1)}%</span></div>
                 <div class="d-flex justify-content-between"><span>손익분기점(명)</span><span>${breakeven}</span></div>
+                ${safetyRatio !== null ? `<div class="d-flex justify-content-between"><span>안전 마진율</span><span>${(safetyRatio*100).toFixed(1)}%</span></div>` : ''}
             </div>
         `;
     };

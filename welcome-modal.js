@@ -2,10 +2,18 @@
  * 웰컴 모달 - 단순하고 접근성이 좋은 구현
  */
 (function() {
+    console.log('웰컴 모달 스크립트 로드됨');
+    
     const modal = document.getElementById('welcome-modal');
     const confirmBtn = document.getElementById('confirm-welcome-btn');
     
-    if (!modal || !confirmBtn) return;
+    console.log('Modal element:', modal);
+    console.log('Confirm button:', confirmBtn);
+    
+    if (!modal || !confirmBtn) {
+        console.error('웰컴 모달 요소를 찾을 수 없습니다');
+        return;
+    }
 
     let previousFocused = null;
     let isOpen = false;
@@ -73,8 +81,10 @@
     }
 
     function closeModal() {
+        console.log('웰컴 모달 닫기 시도, isOpen:', isOpen);
         if (!isOpen) return;
 
+        console.log('웰컴 모달 닫는 중...');
         // 모달 숨기기
         modal.classList.add('is-hidden');
         modal.setAttribute('aria-hidden', 'true');
@@ -94,8 +104,15 @@
         previousFocused = null;
     }
 
+    // 전역 함수로 노출 (HTML onclick 이벤트용)
+    window.closeWelcomeModal = function() {
+        console.log('전역 closeWelcomeModal 함수 호출됨');
+        closeModal();
+    };
+
     // 확인 버튼 클릭
     confirmBtn.addEventListener('click', (e) => {
+        console.log('웰컴 모달 확인 버튼 클릭됨');
         e.preventDefault();
         closeModal();
     });
@@ -109,7 +126,24 @@
     });
 
     // 페이지 로드시 모달 자동 열기
-    if (!modal.classList.contains('is-hidden')) {
-        openModal();
+    // DOM이 완전히 로드된 후 실행
+    function initModal() {
+        console.log('웰컴 모달 초기화 중...');
+        
+        // 모달이 숨겨져 있지 않다면 열기
+        if (!modal.classList.contains('is-hidden')) {
+            console.log('모달 자동 열기');
+            openModal();
+        } else {
+            console.log('모달이 숨겨져 있음');
+        }
+    }
+
+    // DOM 상태에 따라 즉시 실행 또는 대기
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModal);
+    } else {
+        // DOM이 이미 로드된 경우 즉시 실행
+        initModal();
     }
 })();

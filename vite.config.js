@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
-    base: './', // GitHub Pages 배포 시 상대 경로 사용
+    base: '/festival-travel-guide/', // GitHub Pages 배포 시 저장소 이름 포함
     build: {
         outDir: 'dist',
         rollupOptions: {

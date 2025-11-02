@@ -26,6 +26,14 @@ async function initApp() {
     try {
         console.log("🚀 Festival Travel Guide App Initializing from main.js...");
 
+        // 페이지 로드 시 맨 위로 스크롤 (브라우저 스크롤 복원 방지)
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+
         // CSV 병합(자동 추가) 후 카드 렌더
         const mergeSummary = await loadCsvAndMerge('/data/festivals.sample.csv');
         console.log('📦 CSV merge summary:', mergeSummary);
@@ -82,9 +90,17 @@ async function initApp() {
         }
         if (import.meta.env.PROD && 'serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                // 페이지 완전 로드 후 다시 한번 맨 위로 스크롤 보장
+                window.scrollTo(0, 0);
+                
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('🛟 Service Worker registered:', reg.scope))
                     .catch(err => console.warn('Service Worker registration failed:', err));
+            });
+        } else {
+            // 개발 환경에서도 완전 로드 후 스크롤 위치 보장
+            window.addEventListener('load', () => {
+                window.scrollTo(0, 0);
             });
         }
     } catch (error) {

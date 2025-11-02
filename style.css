@@ -90,6 +90,15 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* 스크롤 복원 방지 및 초기 위치 설정 */
+html {
+    scroll-behavior: smooth;
+}
+
+html.no-scroll-restore {
+    scroll-behavior: auto;
+}
+
 /* 접근성: 포커스 가시성 개선 */
 :focus-visible {
     outline: 3px solid rgba(102,126,234,0.65);

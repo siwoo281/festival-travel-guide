@@ -19,7 +19,7 @@ yarn-debug.log*
 # 환경 변수 (API 키 보호)
 .env
 .env.local
-env.js
+env.local.js
 assets/js/config/env.js
 
 # 의존성

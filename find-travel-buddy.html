@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>축제 친구 찾기 - Festival Travel Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .buddy-search-section {
+            padding: 3rem 0;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .buddy-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .buddy-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-color: var(--brand-primary);
+        }
+        
+        .buddy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .buddy-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .match-score {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .buddy-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .detail-item i {
+            color: var(--brand-primary);
+            width: 20px;
+        }
+        
+        .interest-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .interest-tag {
+            background: #f0f3ff;
+            color: var(--brand-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .search-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .utterances {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header-section">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <i class="fas fa-globe-americas"></i> Festival Travel Guide
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item"><a class="nav-link" href="index.html#festivals">축제</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="find-travel-buddy.html">축제 친구 찾기</a></li>
+                            <li class="nav-item"><a class="nav-link" href="business-analysis.html">사업 분석</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <section class="buddy-search-section">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2><i class="fas fa-users"></i> 축제 친구 찾기</h2>
+                <p>같은 축제를 함께 즐길 동행자를 찾아보세요!</p>
+            </div>
+
+            <!-- 사용 안내 -->
+            <div class="alert alert-info" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-info-circle"></i> 이용 방법</h5>
+                <ol class="mb-0">
+                    <li>아래에 여러분의 여행 계획(축제, 날짜, 관심사)을 댓글로 남겨주세요.</li>
+                    <li>다른 사람들의 계획을 확인하고, 비슷한 일정이 있다면 답글로 연락하세요.</li>
+                    <li>개인정보 보호를 위해 익명 닉네임을 사용하고, 연락은 오픈채팅 링크나 이메일로 해주세요.</li>
+                    <li>안전한 여행을 위해 첫 만남은 공개된 장소에서 하시기를 권장합니다.</li>
+                </ol>
+            </div>
+
+            <!-- 검색 필터 (선택 사항) -->
+            <div class="search-form">
+                <h4 class="mb-3"><i class="fas fa-filter"></i> 동행자 찾기 필터</h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">축제 선택</label>
+                        <select class="form-select" id="filterFestival">
+                            <option value="">전체</option>
+                            <option value="tomatina">라 토마티나 (스페인)</option>
+                            <option value="oktoberfest">옥토버페스트 (독일)</option>
+                            <option value="carnival">리우 카니발 (브라질)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">여행 월</label>
+                        <select class="form-select" id="filterMonth">
+                            <option value="">전체</option>
+                            <option value="02">2월</option>
+                            <option value="08">8월</option>
+                            <option value="09">9월</option>
+                            <option value="10">10월</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">관심사</label>
+                        <select class="form-select" id="filterInterest">
+                            <option value="">전체</option>
+                            <option value="사진">사진/인증샷</option>
+                            <option value="음식">음식/미식</option>
+                            <option value="파티">파티/축제</option>
+                            <option value="문화">문화/역사</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="applyFilter()">
+                        <i class="fas fa-search"></i> 필터 적용
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="resetFilter()">
+                        <i class="fas fa-redo"></i> 초기화
+                    </button>
+                </div>
+            </div>
+
+            <!-- 추천 동행자 섹션 (필터 결과) -->
+            <div id="recommendedBuddies" class="mb-4" style="display: none;">
+                <h4 class="mb-3"><i class="fas fa-star"></i> 추천 동행자</h4>
+                <div id="buddyList"></div>
+            </div>
+
+            <!-- GitHub Issues 기반 댓글 시스템 -->
+            <div class="mt-4">
+                <h4 class="mb-3"><i class="fas fa-comments"></i> 동행자 모집 게시판</h4>
+                <p class="text-muted mb-3">
+                    <strong>작성 예시:</strong><br>
+                    닉네임: 여행러버<br>
+                    축제: 라 토마티나<br>
+                    날짜: 2025년 8월 25-30일 (5박 6일)<br>
+                    인원: 1명 (동행 1-2명 찾습니다)<br>
+                    관심사: 사진, 맛집, 현지 문화 체험<br>
+                    연락처: [카카오톡 오픈채팅 링크]<br>
+                    한 마디: 편안한 여행 스타일 선호합니다 🌟
+                </p>
+                
+                <!-- Utterances 댓글 위젯 -->
+                <script src="https://utteranc.es/client.js"
+                        repo="siwoo281/festival-travel-guide"
+                        issue-term="pathname"
+                        label="동행찾기"
+                        theme="github-light"
+                        crossorigin="anonymous"
+                        async>
+                </script>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h4>Festival Travel Guide</h4>
+                    <p>세계의 축제와 함께하는 완벽한 여행</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>바로가기</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html#festivals">축제 목록</a></li>
+                        <li><a href="find-travel-buddy.html">축제 친구 찾기</a></li>
+                        <li><a href="business-analysis.html">사업 분석</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h4>문의</h4>
+                    <p><i class="fas fa-envelope"></i> info@festivaltravelguide.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Festival Travel Guide. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 필터 기능 (댓글 파싱하여 매칭하는 로직)
+        function applyFilter() {
+            const festival = document.getElementById('filterFestival').value;
+            const month = document.getElementById('filterMonth').value;
+            const interest = document.getElementById('filterInterest').value;
+            
+            // Utterances 댓글을 파싱하여 필터링하는 로직
+            // (GitHub API를 통해 Issues 댓글을 가져와서 필터링)
+            
+            alert('필터 기능은 댓글이 쌓인 후 활성화됩니다. 현재는 아래 댓글을 직접 확인해주세요!');
+        }
+        
+        function resetFilter() {
+            document.getElementById('filterFestival').value = '';
+            document.getElementById('filterMonth').value = '';
+            document.getElementById('filterInterest').value = '';
+            document.getElementById('recommendedBuddies').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

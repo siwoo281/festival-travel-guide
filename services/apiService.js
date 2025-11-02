@@ -1,4 +1,11 @@
 // ===== API 서비스 =====
+import { optimizeFallbackImage } from '../utils/helpers.js';
+
+// 로거 준비 (없을 경우 console 대체)
+const logger = (typeof window !== 'undefined' && window.logger) ? window.logger : console;
+
+// Unsplash API 키 로드 (없으면 빈 문자열)
+const UNSPLASH_ACCESS_KEY = (typeof window !== 'undefined' && window.ENV && window.ENV.UNSPLASH_KEY) ? window.ENV.UNSPLASH_KEY : '';
 
 /**
  * Unsplash 이미지 가져오기 (캐싱 포함)
@@ -6,8 +13,12 @@
  * @param {string} fallback - fallback 이미지 URL
  * @returns {Promise<string>}
  */
-async function fetchUnsplashImage(query, fallback) {
+export async function fetchUnsplashImage(query, fallback) {
     try {
+        // 키가 없으면 즉시 fallback 사용
+        if (!UNSPLASH_ACCESS_KEY) {
+            return optimizeFallbackImage(fallback);
+        }
         const cfg = window.IMAGE_CONFIG || {};
         const timeoutMs = Number.isFinite(cfg.timeoutMs) ? cfg.timeoutMs : 3000;
         const cacheTtl = Number.isFinite(cfg.cacheTtlMs) ? cfg.cacheTtlMs : (6 * 60 * 60 * 1000);
@@ -75,7 +86,7 @@ async function fetchUnsplashImage(query, fallback) {
  * @param {string} toCurrency - 대상 통화 (예: EUR)
  * @returns {Promise<number|null>}
  */
-async function getExchangeRate(fromCurrency = 'KRW', toCurrency = 'USD') {
+export async function getExchangeRate(fromCurrency = 'KRW', toCurrency = 'USD') {
     try {
         const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
         if (!response.ok) throw new Error('환율 API 실패');

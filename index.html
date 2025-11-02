@@ -10,10 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
     <link rel="preconnect" href="https://api.unsplash.com" crossorigin>
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin>
     <!-- Pretendard 폰트 (한글) + Inter 폰트 (영문) -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Preload hero images to improve LCP -->
+    <link rel="preload" as="image" href="images/Generated image 4.png" imagesrcset="images/Generated image 4.png" fetchpriority="high">
+    <link rel="preload" as="image" href="images/Generated image 2.png" imagesrcset="images/Generated image 2.png" fetchpriority="high">
 </head>
 <body>
     <!-- 헤더 -->
@@ -30,6 +34,7 @@
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"><a class="nav-link" href="#festivals">축제</a></li>
+                            <li class="nav-item"><a class="nav-link" href="find-travel-buddy.html">축제 친구 찾기</a></li>
                             <li class="nav-item"><a class="nav-link" href="business-analysis.html">사업 분석</a></li>
                             
                             <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
@@ -60,8 +65,8 @@
             <div class="quiz-container" id="quizContainer">
                 <div class="quiz-intro" id="quizIntro">
                     <h3 class="mb-2">나에게 딱 맞는 축제 찾기</h3>
-                    <p class="text-muted mb-3">간단한 4문항으로 추천해 드려요.</p>
-                    <button class="btn btn-primary btn-lg" onclick="startQuiz()">
+                    <p class="text-muted mb-3">간단한 5문항으로 추천해 드려요.</p>
+                    <button id="startQuizBtn" class="btn btn-primary btn-lg">
                         <i class="fas fa-play-circle"></i> 퀴즈 시작하기
                     </button>
                 </div>
@@ -73,10 +78,10 @@
                         <!-- 동적으로 생성됨 -->
                     </div>
                     <div class="quiz-nav mt-4">
-                        <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" style="display: none;">
+                        <button class="btn btn-secondary" id="prevBtn" style="display: none;">
                             <i class="fas fa-chevron-left"></i> 이전
                         </button>
-                        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
+                        <button class="btn btn-primary" id="nextBtn">
                             다음 <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
@@ -194,7 +199,9 @@
     </footer>
 
     <!-- 축제 상세 정보 모달 -->
-    <div class="modal fade" id="festivalModal" tabindex="-1" aria-labelledby="festivalModalLabel" aria-hidden="true">
+    <div class="modal fade" id="festivalModal" tabindex="-1" 
+         aria-labelledby="festivalModalLabel" aria-hidden="true" 
+         role="dialog" aria-modal="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
@@ -211,341 +218,73 @@
                             <a class="nav-link active" data-bs-toggle="tab" href="#overview" role="tab">개요</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#package" role="tab">패키지 정보</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#package-info" role="tab">패키지 정보</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#product" role="tab">상품 구성</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#attractions" role="tab">주요 관광지</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#itinerary" role="tab">여행 일정표</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#budget" role="tab">경비</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#breakeven" role="tab">손익분기점</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#travel-tips" role="tab">여행 팁</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#tips" role="tab">여행 팁</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#product-tiers" role="tab">상품 구성</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#nearby" role="tab">📍 주변 관광지</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#breakeven" role="tab">손익 분기점</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#food" role="tab">🍽️ 현지 음식</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#emergency" role="tab">🚨 긴급 정보</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#demand-simulator" role="tab">수요 시뮬레이션</a>
                         </li>
                     </ul>
+
+                    <!-- 모바일용 탭 드롭다운 -->
+                    <div class="detail-tabs-mobile-nav">
+                        <select id="mobileTabSelector" class="form-select"></select>
+                    </div>
 
                     <!-- 탭 컨텐츠 -->
                     <div class="tab-content detail-tab-content">
                         <!-- 개요 탭 -->
                         <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                            <!-- 축제 대표 이미지 -->
-                            <div class="festival-hero-image" id="festivalHeroImage"></div>
-                            
-                            <div class="row mt-4">
-                                <div class="col-lg-8">
-                                    <div class="info-card">
-                                        <div class="festival-header-info">
-                                            <div class="festival-title-section">
-                                                <h2 id="detailFestivalName" class="festival-main-title"></h2>
-                                                <p id="detailLocation" class="festival-location-text">
-                                                    <i class="fas fa-map-marker-alt"></i>
-                                                    <span></span>
-                                                </p>
-                                            </div>
-                                            <div class="festival-price-badge" id="detailPriceBadge"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-info-circle text-primary"></i> 축제 소개</h3>
-                                        <div class="festival-description-full" id="detailDescriptionFull"></div>
-                                    </div>
-
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-calendar-check text-success"></i> 기본 정보</h3>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-calendar-alt"></i>
-                                                    <div>
-                                                        <strong>개최 기간</strong>
-                                                        <p id="detailPeriod"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-clock"></i>
-                                                    <div>
-                                                        <strong>여행 일수</strong>
-                                                        <p id="detailDuration"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-users"></i>
-                                                    <div>
-                                                        <strong>추천 대상</strong>
-                                                        <p id="detailTarget"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="info-item">
-                                                    <i class="fas fa-tag"></i>
-                                                    <div>
-                                                        <strong>예상 비용</strong>
-                                                        <p id="detailPrice"></p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 축제 하이라이트 -->
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-star text-warning"></i> 축제 하이라이트</h3>
-                                        <div id="festivalHighlights" class="highlights-grid"></div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-lg-4">
-                                    <div class="map-card sticky-map">
-                                        <h3><i class="fas fa-map-marked-alt"></i> 위치</h3>
-                                        <div id="detailMap" class="map-container"></div>
-                                        <button class="btn btn-sm btn-outline-primary mt-2 w-100" id="openMapBtn">
-                                            <i class="fas fa-external-link-alt"></i> 지도 크게 보기
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary mt-2 w-100" id="openDirectionsBtn">
-                                            <i class="fas fa-route"></i> 길찾기(구글 지도)
-                                        </button>
-                                    </div>
-
-                                    <!-- 빠른 정보 카드 -->
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-bolt text-warning"></i> 빠른 정보</h3>
-                                        <div id="quickInfo" class="quick-info-list"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div id="festival-overview"></div>
                         </div>
 
                         <!-- 패키지 정보 탭 -->
-                        <div class="tab-pane fade" id="package" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="info-card">
-                                        <h3><i class="fas fa-check-circle text-success"></i> 포함 사항</h3>
-                                        <ul id="packageIncluded" class="package-list"></ul>
-                                    </div>
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-calendar-alt text-info"></i> 출발 일정</h3>
-                                        <ul id="packageDates" class="package-list"></ul>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-card">
-                                        <h3><i class="fas fa-times-circle text-danger"></i> 불포함 사항</h3>
-                                        <ul id="packageExcluded" class="package-list"></ul>
-                                    </div>
-                                    <div class="info-card mt-3">
-                                        <h3><i class="fas fa-users text-warning"></i> 단체 할인</h3>
-                                        <div id="packageDiscount"></div>
-                                        <p class="mt-3"><strong>상품코드:</strong> <span id="packageCode" class="badge bg-primary"></span></p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="tab-pane fade" id="package-info" role="tabpanel">
+                            <div id="package-info-container"></div>
                         </div>
 
-                        <!-- 상품 구성 탭 -->
-                        <div class="tab-pane fade" id="product" role="tabpanel">
-                            <div class="row">
-                                <div class="col-lg-7">
-                                    <div class="info-card">
-                                        <h3>패키지 티어</h3>
-                                        <div id="productTiers" class="tiers-grid"></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-5">
-                                    <div class="info-card">
-                                        <h3>수요·수익 시뮬레이터</h3>
-                                        <div id="demandSimulator">
-                                            <div class="row g-2">
-                                                <div class="col-6">
-                                                    <label class="form-label">판매가(1인)</label>
-                                                    <input type="number" class="form-control" id="sim-price" min="0" step="1000" />
-                                                </div>
-                                                <div class="col-6">
-                                                    <label class="form-label">모객 수(명)</label>
-                                                    <input type="number" class="form-control" id="sim-customers" value="50" min="0" step="1" />
-                                                </div>
-                                                <div class="col-6">
-                                                    <label class="form-label">고정비(원)</label>
-                                                    <input type="number" class="form-control" id="sim-fixed" min="0" step="1000" />
-                                                </div>
-                                                <div class="col-6">
-                                                    <label class="form-label">1인 변동비(원)</label>
-                                                    <input type="number" class="form-control" id="sim-variable" min="0" step="1000" />
-                                                </div>
-                                            </div>
-                                                <div class="row g-2 mt-2">
-                                                    <div class="col-6 d-flex align-items-end">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" id="sim-auto-elastic" />
-                                                            <label class="form-check-label" for="sim-auto-elastic">가격 변경 시 수요 자동 조정</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label">가격 탄력성 e (기본 0.8)</label>
-                                                        <input type="number" class="form-control" id="sim-elasticity" min="0" max="3" step="0.1" value="0.8" />
-                                                    </div>
-                                                </div>
-                                            <button class="btn btn-sm btn-primary mt-3" id="sim-run"><i class="fas fa-calculator"></i> 계산</button>
-                                            <div class="sim-result mt-3" id="sim-result"></div>
-                                            <div class="mt-3">
-                                                <canvas id="sim-chart" height="220"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-lg-7">
-                                    <div class="info-card">
-                                        <h3>티어별 가치제안</h3>
-                                        <div id="tierValueProps" class="value-prop-list"></div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-5">
-                                    <div class="info-card">
-                                        <h3>
-                                            업셀링 / 옵션
-                                            <span id="upsellCountBadge" class="badge" style="display: none;">0</span>
-                                        </h3>
-                                        <div id="upsellOptions">
-                                            <div class="options-list" id="upsellList"></div>
-                                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                                                <div>
-                                                    <small class="text-muted d-block">선택 옵션 합계</small>
-                                                    <strong id="upsellSum" style="font-size: 1.2rem; color: #667eea;">₩0</strong>
-                                                </div>
-                                                <div class="d-flex gap-2 flex-wrap">
-                                                    <button class="btn btn-sm btn-primary" id="applyUpsellToSim">
-                                                        <i class="fas fa-calculator"></i> 시뮬레이터에 적용
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-primary" id="applyUpsellToPlanner">
-                                                        <i class="fas fa-suitcase-rolling"></i> 기획에 적용
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 관광지 탭 -->
-                        <div class="tab-pane fade" id="attractions" role="tabpanel">
-                            <div class="row" id="attractionsList"></div>
+                        <!-- 여행 일정표 탭 -->
+                        <div class="tab-pane fade" id="itinerary" role="tabpanel">
+                            <div id="itinerary-content-container"></div>
                         </div>
 
                         <!-- 경비 탭 -->
                         <div class="tab-pane fade" id="budget" role="tabpanel">
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="info-card">
-                                        <h3>경비 분석</h3>
-                                        <div class="chart-container">
-                                            <canvas id="budgetChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="info-card">
-                                        <h3>총 예상 경비</h3>
-                                        <div class="total-budget">
-                                            <h2 id="totalBudget"></h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 손익분기점 탭 -->
-                        <div class="tab-pane fade" id="breakeven" role="tabpanel">
-                            <div id="breakEvenAnalysis"></div>
+                            <div id="budget-chart-container"></div>
                         </div>
 
                         <!-- 여행 팁 탭 -->
-                        <div class="tab-pane fade" id="tips" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="info-card">
-                                        <h3><i class="fas fa-suitcase"></i> 준비물</h3>
-                                        <ul id="tipItems"></ul>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="info-card">
-                                        <h3><i class="fas fa-exclamation-triangle"></i> 주의사항</h3>
-                                        <ul id="tipWarnings"></ul>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="info-card">
-                                        <h3><i class="fas fa-thumbs-up"></i> 추천</h3>
-                                        <ul id="tipRecommendations"></ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- 주변 관광지 탭 -->
-                        <div class="tab-pane fade" id="nearby" role="tabpanel">
-                            <h3>📍 주변 관광지</h3>
-                            <div id="nearbyAttractionsList" class="attractions-grid"></div>
+                        <div class="tab-pane fade" id="travel-tips" role="tabpanel">
+                            <div id="travel-tips-container"></div>
                         </div>
 
-                        <!-- 현지 음식 탭 -->
-                        <div class="tab-pane fade" id="food" role="tabpanel">
-                            <h3>🍽️ 현지 음식 가이드</h3>
-                            
-                            <h4 class="mt-4 mb-3">꼭 먹어봐야 할 음식</h4>
-                            <div id="mustTryFoodList" class="food-grid"></div>
-                            
-                            <h4 class="mt-5 mb-3">추천 레스토랑</h4>
-                            <div id="restaurantsList" class="restaurant-grid"></div>
+                        <!-- 상품 구성 탭 -->
+                        <div class="tab-pane fade" id="product-tiers" role="tabpanel">
+                            <div id="product-tiers-container"></div>
                         </div>
 
-                        <!-- 긴급 정보 탭 -->
-                        <div class="tab-pane fade" id="emergency" role="tabpanel">
-                            <h3>🚨 긴급 정보</h3>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="info-card emergency-card">
-                                        <h4>🇰🇷 대사관 정보</h4>
-                                        <div id="embassyInfo"></div>
-                                    </div>
-                                    
-                                    <div class="info-card emergency-card mt-3">
-                                        <h4>📞 긴급 연락처</h4>
-                                        <div id="emergencyContacts"></div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="info-card">
-                                        <h4>🗣️ 기본 회화</h4>
-                                        <div id="basicPhrasesList"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- 손익 분기점 탭 -->
+                        <div class="tab-pane fade" id="breakeven" role="tabpanel">
+                            <div id="breakeven-container"></div>
+                        </div>
+
+                        <!-- 수요 시뮬레이션 탭 -->
+                        <div class="tab-pane fade" id="demand-simulator" role="tabpanel">
+                            <div id="demand-simulator-container"></div>
                         </div>
                     </div>
                 </div>
@@ -557,25 +296,42 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
-    <!-- 환경변수 및 설정 -->
-    <script src="env.js"></script>
-    <script src="config/constants.js?v=4"></script>
+    <!-- Main Application Bundle -->
+    <script type="module" src="main.js"></script>
     
-    <!-- 유틸리티 -->
-    <script src="utils/logger.js?v=4"></script>
-    <script src="utils/helpers.js?v=4"></script>
-    
-    <!-- 서비스 -->
-    <script src="services/apiService.js?v=4"></script>
-    
-    <!-- 데이터 소스/설정 -->
-    <script src="api-config.js?v=4"></script>
-    <script src="tourapi-adapter.js?v=4"></script>
-    
-    <!-- 메인 스크립트 -->
-    <script src="script.js?v=4"></script>
-    <script src="api-integration.js?v=4"></script>
-    <script src="tourism-data.js?v=4"></script>
-    <script src="tourism-display.js?v=4"></script>
+    <!-- 새로 추가된 콘텐츠 표시 스크립트 -->
+    <script src="content-display.js"></script>
+
+    <!-- Welcome Modal -->
+        <!-- Welcome Modal -->
+    <div id="welcome-modal" class="welcome-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
+        <div class="welcome-modal-content">
+            <div class="welcome-modal-header">
+                <i class="fas fa-globe-americas welcome-modal-icon"></i>
+                <h2 id="welcome-modal-title">당신의 여행, 축제가 되어 빛나다 ✨</h2>
+            </div>
+            <div class="welcome-modal-body">
+                <p class="hero-subtitle">세계 12개 축제 중, <strong>당신의 리듬</strong>을 닮은 여정을 찾아드립니다.</p>
+                
+                <div class="cta-section">
+                    <p class="cta-text">간단한 <strong>5문항</strong>이면 충분해요. 오늘, 당신의 축제가 시작됩니다 ✨</p>
+                </div>
+                
+                <div class="project-info">
+                    <p class="disclaimer">
+                        💡 학술 프로젝트로 제작된 서비스입니다.<br>
+                        <small>실제 결제 및 예약 기능은 제공되지 않습니다.</small>
+                    </p>
+                    <p class="credit">배재대학교 관광경영학과 2084046 최시우</p>
+                </div>
+            </div>
+            <div class="welcome-modal-footer">
+                <button id="confirm-welcome-btn" class="btn btn-primary btn-lg">
+                    나에게 맞는 축제 추천받기
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="welcome-modal.js"></script>
 </body>
 </html>

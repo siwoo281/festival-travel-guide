@@ -59,7 +59,7 @@ function parseCsv(text) {
  * @param {string} url
  * @returns {string}
  */
-function optimizeFallbackImage(url) {
+export function optimizeFallbackImage(url) {
     if (!url) return '';
     
     // Unsplash 이미지인 경우 최적화 파라미터 추가

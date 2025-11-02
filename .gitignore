@@ -20,6 +20,7 @@ yarn-debug.log*
 .env
 .env.local
 env.js
+assets/js/config/env.js
 
 # 의존성
 node_modules/
@@ -27,6 +28,8 @@ node_modules/
 # 빌드 결과
 dist/
 build/
+.cache/
+.parcel-cache/
 
 # 백업 및 임시 파일
 *.backup

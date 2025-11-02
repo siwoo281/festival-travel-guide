@@ -1,158 +1,115 @@
-(function(){
-  const overlay = document.getElementById('welcome-modal');
-  const confirmBtn = document.getElementById('confirm-welcome-btn');
-  if (!overlay || !confirmBtn) return;
+/**
+ * 웰컴 모달 - 단순하고 접근성이 좋은 구현
+ */
+(function() {
+    const modal = document.getElementById('welcome-modal');
+    const confirmBtn = document.getElementById('confirm-welcome-btn');
+    
+    if (!modal || !confirmBtn) return;
 
-  let prevFocused = null;
-  let keydownHandler = null;
+    let previousFocused = null;
+    let isOpen = false;
 
-  // 안전한 포커스 폴백 요소를 보장
-  function ensureFocusSentinel() {
-    let sentinel = document.getElementById('focus-sentinel');
-    if (!sentinel) {
-      sentinel = document.createElement('div');
-      sentinel.id = 'focus-sentinel';
-      sentinel.tabIndex = -1;
-      sentinel.style.position = 'fixed';
-      sentinel.style.top = '-9999px';
-      document.body.appendChild(sentinel);
+    // 포커스 가능한 요소들 찾기
+    function getFocusableElements() {
+        return modal.querySelectorAll(
+            'a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])'
+        );
     }
-    return sentinel;
-  }
 
-  // 모달 밖의 안전한 포커스 타겟 찾기
-  function findSafeFocusTarget() {
-    // 1) 내비게이션 브랜드 링크
-    const brand = document.querySelector('.navbar .navbar-brand');
-    if (brand) return brand;
-    // 2) 메인 컨텐츠 앵커
-    const festivals = document.getElementById('festivals');
-    if (festivals) {
-      festivals.tabIndex = festivals.tabIndex || -1;
-      return festivals;
+    // 포커스 트랩
+    function trapFocus(e) {
+        if (e.key !== 'Tab') return;
+
+        const focusableElements = Array.from(getFocusableElements());
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+            // Shift + Tab
+            if (document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            }
+        } else {
+            // Tab
+            if (document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
     }
-    // 3) 카드 컨테이너
-    const cards = document.getElementById('festivalCards');
-    if (cards) {
-      cards.tabIndex = cards.tabIndex || -1;
-      return cards;
+
+    // ESC 키로 모달 닫기
+    function handleEscape(e) {
+        if (e.key === 'Escape' && isOpen) {
+            closeModal();
+        }
     }
-    // 4) 최후의 보루: 센티넬
-    return ensureFocusSentinel();
-  }
 
-  function getFocusableElements() {
-    return overlay.querySelectorAll(
-      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-    );
-  }
+    function openModal() {
+        if (isOpen) return;
 
-  function openModal() {
-    // 현재 포커스를 저장하되, 모달 내부가 아니어야 유효
-    const currentActive = document.activeElement;
-    prevFocused = currentActive && !overlay.contains(currentActive) ? currentActive : null;
-    document.body.classList.add('modal-open');
-  overlay.classList.remove('is-hidden');
-  // inert 해제 (포커스 가능)
-  overlay.removeAttribute('inert');
-  // aria-hidden은 사용하지 않음 (inert로 대체)
-  overlay.removeAttribute('aria-hidden');
+        // 현재 포커스된 요소 저장
+        previousFocused = document.activeElement;
+        
+        // 모달 표시
+        modal.classList.remove('is-hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        
+        isOpen = true;
 
-    // Focus primary action after paint
-    requestAnimationFrame(() => {
-      try { confirmBtn.focus({ preventScroll: true }); } catch(_) {}
-    });
+        // 이벤트 리스너 추가
+        document.addEventListener('keydown', trapFocus);
+        document.addEventListener('keydown', handleEscape);
 
-    // Focus trap + ESC close
-    keydownHandler = (e) => {
-      if (e.key === 'Escape') {
+        // 확인 버튼에 포커스
+        requestAnimationFrame(() => {
+            confirmBtn.focus();
+        });
+    }
+
+    function closeModal() {
+        if (!isOpen) return;
+
+        // 모달 숨기기
+        modal.classList.add('is-hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        
+        isOpen = false;
+
+        // 이벤트 리스너 제거
+        document.removeEventListener('keydown', trapFocus);
+        document.removeEventListener('keydown', handleEscape);
+
+        // 이전 포커스 복원
+        if (previousFocused && previousFocused.focus) {
+            previousFocused.focus();
+        }
+
+        previousFocused = null;
+    }
+
+    // 확인 버튼 클릭
+    confirmBtn.addEventListener('click', (e) => {
         e.preventDefault();
         closeModal();
-        return;
-      }
-      if (e.key === 'Tab') {
-        const focusables = Array.from(getFocusableElements());
-        if (!focusables.length) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey) {
-          if (document.activeElement === first || !overlay.contains(document.activeElement)) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
+    });
+
+    // 모달 외부 클릭시 닫기
+    modal.addEventListener('click', (e) => {
+        const content = modal.querySelector('.welcome-modal-content');
+        if (content && !content.contains(e.target)) {
+            closeModal();
         }
-      }
-    };
-    document.addEventListener('keydown', keydownHandler);
-  }
+    });
 
-  function closeModal() {
-    // 1) 우선 모달을 inert로 만들어 포커스가 더 이상 머물지 않도록 함
-    try { overlay.setAttribute('inert', ''); } catch(_) {}
-
-    // 2) 포커스가 모달 안에 남아있다면 안전한 위치로 이동
-    const active = document.activeElement;
-    const needsFocusMove = overlay.contains(active);
-    try {
-      if (prevFocused && typeof prevFocused.focus === 'function' && !overlay.contains(prevFocused)) {
-        prevFocused.focus({ preventScroll: true });
-      } else if (needsFocusMove) {
-        const target = findSafeFocusTarget();
-        target && typeof target.focus === 'function' ? target.focus({ preventScroll: true }) : active && typeof active.blur === 'function' && active.blur();
-      }
-    } catch(_) {}
-    
-    // 2. 키보드 이벤트 리스너 제거
-    if (keydownHandler) {
-      document.removeEventListener('keydown', keydownHandler);
-      keydownHandler = null;
+    // 페이지 로드시 모달 자동 열기
+    if (!modal.classList.contains('is-hidden')) {
+        openModal();
     }
-    
-    // 포커스가 여전히 모달 내부인 경우 강제 blur
-    try {
-      if (overlay.contains(document.activeElement)) {
-        document.activeElement.blur();
-      }
-    } catch(_) {}
-
-    // 3) 모달 숨기기 (ARIA는 inert로 대체하므로 aria-hidden 설정은 생략)
-    overlay.classList.add('is-hidden');
-    overlay.removeAttribute('aria-hidden');
-    // 스크롤 잠금 해제 (클래스/인라인 스타일 모두 해제)
-    document.body.classList.remove('modal-open');
-    try {
-      document.body.style.overflow = '';
-      document.body.style.height = '';
-      document.documentElement && (document.documentElement.style.overflow = '');
-      document.documentElement && (document.documentElement.style.height = '');
-    } catch(_) {}
-  }
-
-  // Click outside content closes modal
-  overlay.addEventListener('click', (e) => {
-    const content = overlay.querySelector('.welcome-modal-content');
-    if (!content) return;
-    if (!content.contains(e.target)) {
-      closeModal();
-    }
-  });
-
-  confirmBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeModal();
-  });
-
-  // Auto-open on first load
-  if (!overlay.classList.contains('is-hidden')) {
-    // Already visible by default; ensure body lock and focus trap
-    openModal();
-  } else {
-    // If hidden by default for some reason, you can force open once
-    // openModal();
-  }
 })();

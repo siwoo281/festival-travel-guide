@@ -1,22 +1,24 @@
 /**
- * 웰컴 모달 - 단순하고 접근성이 좋은 구현
+ * 웰컴 모달 - 강화된 호환성 버전
  */
 (function() {
-    console.log('웰컴 모달 스크립트 로드됨');
+    console.log('🚀 웰컴 모달 스크립트 시작');
     
-    const modal = document.getElementById('welcome-modal');
-    const confirmBtn = document.getElementById('confirm-welcome-btn');
-    
-    console.log('Modal element:', modal);
-    console.log('Confirm button:', confirmBtn);
-    
-    if (!modal || !confirmBtn) {
-        console.error('웰컴 모달 요소를 찾을 수 없습니다');
-        return;
-    }
-
+    let modal = null;
+    let confirmBtn = null;
     let previousFocused = null;
     let isOpen = false;
+    
+    // 요소 찾기 함수
+    function findElements() {
+        modal = document.getElementById('welcome-modal');
+        confirmBtn = document.getElementById('confirm-welcome-btn');
+        
+        console.log('📍 Modal element:', modal);
+        console.log('📍 Confirm button:', confirmBtn);
+        
+        return modal && confirmBtn;
+    }
 
     // 포커스 가능한 요소들 찾기
     function getFocusableElements() {
@@ -81,10 +83,11 @@
     }
 
     function closeModal() {
-        console.log('웰컴 모달 닫기 시도, isOpen:', isOpen);
-        if (!isOpen) return;
+        console.log('🔒 웰컴 모달 닫기 시도, isOpen:', isOpen);
+        if (!isOpen || !modal) return;
 
-        console.log('웰컴 모달 닫는 중...');
+        console.log('🔒 웰컴 모달 닫는 중...');
+        
         // 모달 숨기기
         modal.classList.add('is-hidden');
         modal.setAttribute('aria-hidden', 'true');
@@ -97,53 +100,121 @@
         document.removeEventListener('keydown', handleEscape);
 
         // 이전 포커스 복원
-        if (previousFocused && previousFocused.focus) {
-            previousFocused.focus();
+        if (previousFocused && typeof previousFocused.focus === 'function') {
+            try {
+                previousFocused.focus();
+            } catch (e) {
+                console.warn('포커스 복원 실패:', e);
+            }
         }
 
         previousFocused = null;
+        console.log('✅ 웰컴 모달 닫기 완료');
+    }
+
+    // 여러 방식으로 버튼 이벤트 등록
+    function setupButtonEvents() {
+        if (!confirmBtn) return;
+        
+        console.log('🔘 버튼 이벤트 설정 중...');
+        
+        // 방법 1: addEventListener
+        confirmBtn.addEventListener('click', function(e) {
+            console.log('🔘 addEventListener 클릭 감지');
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal();
+        });
+        
+        // 방법 2: onclick 직접 할당
+        confirmBtn.onclick = function(e) {
+            console.log('🔘 onclick 직접 할당 클릭 감지');
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal();
+            return false;
+        };
+        
+        // 방법 3: 터치 이벤트 (모바일 대응)
+        confirmBtn.addEventListener('touchend', function(e) {
+            console.log('🔘 터치 이벤트 감지');
+            e.preventDefault();
+            closeModal();
+        });
+        
+        console.log('✅ 버튼 이벤트 설정 완료');
     }
 
     // 전역 함수로 노출 (HTML onclick 이벤트용)
     window.closeWelcomeModal = function() {
-        console.log('전역 closeWelcomeModal 함수 호출됨');
+        console.log('🌐 전역 closeWelcomeModal 함수 호출됨');
         closeModal();
     };
 
-    // 확인 버튼 클릭
-    confirmBtn.addEventListener('click', (e) => {
-        console.log('웰컴 모달 확인 버튼 클릭됨');
-        e.preventDefault();
-        closeModal();
-    });
+    // 강제 닫기 함수 (디버깅용)
+    window.forceCloseModal = function() {
+        console.log('🚨 강제 모달 닫기');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+    };
 
     // 모달 외부 클릭시 닫기
-    modal.addEventListener('click', (e) => {
-        const content = modal.querySelector('.welcome-modal-content');
-        if (content && !content.contains(e.target)) {
-            closeModal();
-        }
-    });
+    function setupOutsideClick() {
+        if (!modal) return;
+        
+        modal.addEventListener('click', function(e) {
+            const content = modal.querySelector('.welcome-modal-content');
+            if (content && !content.contains(e.target)) {
+                console.log('🖱️ 모달 외부 클릭');
+                closeModal();
+            }
+        });
+    }
 
-    // 페이지 로드시 모달 자동 열기
-    // DOM이 완전히 로드된 후 실행
+    // 초기화 함수
     function initModal() {
-        console.log('웰컴 모달 초기화 중...');
+        console.log('🎬 웰컴 모달 초기화 시작...');
+        
+        if (!findElements()) {
+            console.error('❌ 웰컴 모달 요소를 찾을 수 없습니다');
+            // 재시도
+            setTimeout(initModal, 100);
+            return;
+        }
+        
+        setupButtonEvents();
+        setupOutsideClick();
         
         // 모달이 숨겨져 있지 않다면 열기
         if (!modal.classList.contains('is-hidden')) {
-            console.log('모달 자동 열기');
+            console.log('🎭 모달 자동 열기');
             openModal();
         } else {
-            console.log('모달이 숨겨져 있음');
+            console.log('🙈 모달이 숨겨져 있음');
         }
+        
+        console.log('✅ 웰컴 모달 초기화 완료');
     }
 
-    // DOM 상태에 따라 즉시 실행 또는 대기
+    // 다양한 시점에서 초기화 시도
     if (document.readyState === 'loading') {
+        console.log('📚 DOM 로딩 중 - DOMContentLoaded 대기');
         document.addEventListener('DOMContentLoaded', initModal);
+    } else if (document.readyState === 'interactive') {
+        console.log('🔄 DOM 인터랙티브 - 즉시 초기화');
+        initModal();
     } else {
-        // DOM이 이미 로드된 경우 즉시 실행
+        console.log('✅ DOM 완료 - 즉시 초기화');
         initModal();
     }
+    
+    // 추가 안전장치 - 500ms 후 재시도
+    setTimeout(function() {
+        if (!modal || !confirmBtn) {
+            console.log('🔄 500ms 후 재시도');
+            initModal();
+        }
+    }, 500);
 })();

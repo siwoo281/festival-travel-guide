@@ -2383,8 +2383,11 @@ body.modal-open {
     position: relative;
     overflow: hidden;
     min-height: 52px; /* 🎯 터치 영역 확대 (WCAG 기준 초과) */
-    cursor: pointer; /* 🎯 커서 명시 */
+    cursor: pointer !important; /* 🎯 커서 강제 */
     border: none;
+    pointer-events: auto !important; /* 🎯 클릭 이벤트 강제 활성화 */
+    z-index: 10001 !important; /* 🎯 최상위 레이어 */
+    user-select: none; /* 🎯 텍스트 선택 방지 */
 }
 
 .welcome-modal-footer .btn:focus {

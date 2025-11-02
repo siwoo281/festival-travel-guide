@@ -325,7 +325,12 @@
                 </div>
             </div>
             <div class="welcome-modal-footer">
-                <button id="confirm-welcome-btn" class="btn btn-primary btn-lg" onclick="closeWelcomeModal()">
+                <button id="confirm-welcome-btn" 
+                        class="btn btn-primary btn-lg" 
+                        onclick="closeWelcomeModal(); return false;"
+                        onmousedown="closeWelcomeModal(); return false;"
+                        ontouchend="closeWelcomeModal(); return false;"
+                        style="cursor: pointer; pointer-events: auto; z-index: 10000;">
                     나에게 맞는 축제 추천받기
                 </button>
             </div>

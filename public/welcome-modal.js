@@ -145,12 +145,6 @@
         console.log('✅ 버튼 이벤트 설정 완료');
     }
 
-    // 전역 함수로 노출 (HTML onclick 이벤트용)
-    window.closeWelcomeModal = function() {
-        console.log('🌐 전역 closeWelcomeModal 함수 호출됨');
-        closeModal();
-    };
-
     // 강제 닫기 함수 (디버깅용)
     window.forceCloseModal = function() {
         console.log('🚨 강제 모달 닫기');

@@ -18,7 +18,7 @@ import './utils/setupMobileTabSelector.js';
 import { festivalsData } from './data/festivals.js';
 import { loadCsvAndMerge } from './data/csv-loader.js';
 import { loadFestivalCards, setupModalHandlers, showFestivalDetail, createFestivalCard, togglePlanner, updatePlanEstimate, savePlan, copyPlan, prefillPlannerFromTier } from './modules/ui.js';
-import { startQuiz, selectAnswer, nextQuestion, prevQuestion, restartQuiz } from './modules/quiz.js';
+import { startQuiz } from './modules/quiz.js';
 
 
 // 2. 애플리케이션 초기화 함수
@@ -46,27 +46,18 @@ async function initApp() {
         const startBtn = document.getElementById('startQuizBtn');
         if (startBtn) startBtn.addEventListener('click', startQuiz);
 
-        const nextBtn = document.getElementById('nextBtn');
-        if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+        // 이전/다음/다시시작 버튼은 quiz.js 내부에서 동적으로 관리되므로 여기서 설정하지 않음
 
-        const prevBtn = document.getElementById('prevBtn');
-        if (prevBtn) prevBtn.addEventListener('click', prevQuestion);
-
-        // 전역 함수 노출
+        // 전역 함수 노출 (필요한 경우 최소화)
         window.showFestivalDetail = showFestivalDetail;
-        window.selectAnswer = selectAnswer;
-        window.restartQuiz = restartQuiz;
-        window.startQuiz = startQuiz;
-        window.nextQuestion = nextQuestion;
-        window.prevQuestion = prevQuestion;
         window.createFestivalCard = createFestivalCard; // 퀴즈 모듈에서 사용할 수 있도록 추가
-    // 기획 패널 관련 전역 노출 (카드 내 inline onclick 호환)
-    window.togglePlanner = togglePlanner;
-    window.updatePlanEstimate = updatePlanEstimate;
-    window.savePlan = savePlan;
-    window.copyPlan = copyPlan;
-    window.prefillPlannerFromTier = prefillPlannerFromTier;
-    // (이전 스크립트 전환 과정의 잔여치 제거) 존재하지 않는 전역 함수 노출 제거
+        // 기획 패널 관련 전역 노출 (카드 내 inline onclick 호환)
+        window.togglePlanner = togglePlanner;
+        window.updatePlanEstimate = updatePlanEstimate;
+        window.savePlan = savePlan;
+        window.copyPlan = copyPlan;
+        window.prefillPlannerFromTier = prefillPlannerFromTier;
+        // (이전 스크립트 전환 과정의 잔여치 제거) 존재하지 않는 전역 함수 노출 제거
 
         // URL 해시 처리
         handleUrlHash();

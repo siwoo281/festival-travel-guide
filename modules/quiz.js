@@ -7,7 +7,150 @@ import { createFestivalCard } from './ui.js';
 let currentQuestionIndex = 0;
 let quizAnswers = {};
 
-// ===== 퀴즈 로직 함수 =====
+// ===== 내부 헬퍼 함수 =====
+
+/**
+ * 질문 카드 UI를 렌더링합니다.
+ * @param {object} question - 현재 질문 객체
+ * @param {object} answers - 현재까지의 답변 객체
+ */
+function renderQuestion(question, answers) {
+    const progress = Math.round(((currentQuestionIndex + 1) / quizData.questions.length) * 100);
+    const progressBar = document.getElementById('quizProgress');
+    if (progressBar) progressBar.style.width = `${progress}%`;
+
+    const card = document.getElementById('questionCard');
+    if (!card) return;
+
+    const selectedAnswer = answers[question.id];
+    card.innerHTML = `
+        <h4 class="quiz-question-title">${question.question}</h4>
+        <p class="quiz-question-desc">${question.description}</p>
+        <div class="list-group quiz-options" role="radiogroup" aria-label="퀴즈 보기">
+            ${question.options.map((option) => {
+                const isSelected = selectedAnswer === option.text;
+                return `
+                <button type="button" class="list-group-item list-group-item-action quiz-option ${isSelected ? 'active' : ''}"
+                        role="radio" aria-checked="${isSelected}"
+                        data-qid="${question.id}" data-answer="${encodeURIComponent(option.text)}">
+                    ${option.text}
+                </button>`;
+            }).join('')}
+        </div>
+    `;
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+    if (nextBtn) {
+        nextBtn.textContent = currentQuestionIndex === quizData.questions.length - 1 ? '결과 보기' : '다음';
+        const answered = !!answers[question.id];
+        nextBtn.disabled = !answered;
+        nextBtn.classList.toggle('disabled', !answered);
+        nextBtn.setAttribute('aria-disabled', String(!answered));
+    }
+}
+
+/**
+ * 현재 질문에 대한 이벤트 핸들러를 설정합니다.
+ */
+function setupQuestionEventHandlers() {
+    const card = document.getElementById('questionCard');
+    if (card) {
+        const options = card.querySelectorAll('.quiz-option');
+        options.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const qid = parseInt(e.currentTarget.getAttribute('data-qid'), 10);
+                const answer = decodeURIComponent(e.currentTarget.getAttribute('data-answer'));
+                handleAnswerSelection(qid, answer);
+            });
+        });
+    }
+
+    const prevBtn = document.getElementById('prevBtn');
+    if (prevBtn) {
+        const newPrevBtn = prevBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+        newPrevBtn.addEventListener('click', prevQuestion);
+    }
+
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) {
+        const newNextBtn = nextBtn.cloneNode(true);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+        newNextBtn.addEventListener('click', nextQuestion);
+    }
+}
+
+
+/**
+ * 특정 인덱스의 질문을 화면에 표시 (렌더링 + 이벤트 설정)
+ * @param {number} index - 질문 인덱스
+ */
+function showQuestion(index) {
+    if (index >= quizData.questions.length) {
+        showResult();
+        return;
+    }
+    const question = quizData.questions[index];
+    renderQuestion(question, quizAnswers);
+    setupQuestionEventHandlers();
+}
+
+
+/**
+ * 답변 선택 처리 및 다음 단계로 전환
+ * @param {number} questionId - 질문 ID
+ * @param {string} answerText - 선택한 답변 텍스트
+ */
+function handleAnswerSelection(questionId, answerText) {
+    quizAnswers[questionId] = answerText;
+    
+    renderQuestion(quizData.questions[currentQuestionIndex], quizAnswers);
+    
+    const card = document.getElementById('questionCard');
+    
+    setTimeout(() => {
+        if (currentQuestionIndex >= quizData.questions.length - 1) {
+            showResult();
+        } else {
+            currentQuestionIndex++;
+            if (card) {
+                card.classList.add('question-card-transition');
+                setTimeout(() => {
+                    showQuestion(currentQuestionIndex);
+                    card.classList.remove('question-card-transition');
+                }, 150);
+            } else {
+                 showQuestion(currentQuestionIndex);
+            }
+        }
+    }, 300);
+}
+
+/**
+ * 다음 질문으로 이동
+ */
+function nextQuestion() {
+    if (currentQuestionIndex < quizData.questions.length - 1) {
+        currentQuestionIndex++;
+        showQuestion(currentQuestionIndex);
+    } else {
+        showResult();
+    }
+}
+
+/**
+ * 이전 질문으로 이동
+ */
+function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        showQuestion(currentQuestionIndex);
+    }
+}
+
+// ===== 퀴즈 결과 로직 (변경 없음) =====
 
 /**
  * 사용자의 5문항 응답을 속성 선호도로 변환
@@ -107,151 +250,6 @@ function computeAttributeMatchScore(userProfile, festivalProfile) {
     return score;
 }
 
-
-/**
- * 퀴즈 시작
- */
-export function startQuiz() {
-    currentQuestionIndex = 0;
-    quizAnswers = {};
-    const intro = document.getElementById('quizIntro');
-    const questions = document.getElementById('quizQuestions');
-    const result = document.getElementById('quizResult');
-    if (intro) intro.style.display = 'none';
-    if (result) result.style.display = 'none';
-    if (questions) questions.style.display = 'block';
-    showQuestion(currentQuestionIndex);
-}
-
-/**
- * 특정 인덱스의 질문을 화면에 표시
- * @param {number} index - 질문 인덱스
- */
-function showQuestion(index) {
-    if (index >= quizData.questions.length) {
-        showResult();
-        return;
-    }
-
-    const question = quizData.questions[index];
-    const progress = Math.round(((index + 1) / quizData.questions.length) * 100);
-
-    // 진행바 갱신
-    const progressBar = document.getElementById('quizProgress');
-    if (progressBar) progressBar.style.width = `${progress}%`;
-
-    // 질문/옵션 렌더링
-    const card = document.getElementById('questionCard');
-    if (card) {
-        const selected = quizAnswers[question.id];
-        const firstText = question.options[0]?.text || '';
-        card.innerHTML = `
-            <h4 class="quiz-question-title">${question.question}</h4>
-            <p class="quiz-question-desc">${question.description}</p>
-            <div class="list-group quiz-options" role="radiogroup" aria-label="퀴즈 보기">
-                ${question.options.map((option) => {
-                    const isSel = selected === option.text;
-                    const isFirst = option.text === firstText;
-                    const tabIndex = isSel ? 0 : (selected ? -1 : (isFirst ? 0 : -1));
-                    return `
-                    <button type="button" class="list-group-item list-group-item-action quiz-option ${isSel ? 'active' : ''}"
-                            role="radio" aria-checked="${isSel}" tabindex="${tabIndex}"
-                            data-qid="${question.id}" data-answer="${encodeURIComponent(option.text)}">
-                        ${option.text}
-                    </button>`;
-                }).join('')}
-            </div>
-        `;
-        const options = Array.from(card.querySelectorAll('.quiz-option'));
-        const focusOption = (idx) => {
-            options.forEach((btn, i) => btn.setAttribute('tabindex', i === idx ? '0' : '-1'));
-            options[idx]?.focus();
-        };
-        // 클릭 선택
-        options.forEach((btn, i) => {
-            btn.addEventListener('click', (e) => {
-                const qid = parseInt(e.currentTarget.getAttribute('data-qid'), 10);
-                const answer = decodeURIComponent(e.currentTarget.getAttribute('data-answer'));
-                selectAnswer(qid, answer);
-            });
-            // 키보드 내비게이션
-            btn.addEventListener('keydown', (e) => {
-                const key = e.key;
-                const currentIndex = options.indexOf(e.currentTarget);
-                if (key === 'ArrowDown' || key === 'ArrowRight') {
-                    e.preventDefault();
-                    const next = (currentIndex + 1) % options.length;
-                    focusOption(next);
-                } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
-                    e.preventDefault();
-                    const prev = (currentIndex - 1 + options.length) % options.length;
-                    focusOption(prev);
-                } else if (key === ' ' || key === 'Enter') {
-                    e.preventDefault();
-                    const qid = parseInt(e.currentTarget.getAttribute('data-qid'), 10);
-                    const answer = decodeURIComponent(e.currentTarget.getAttribute('data-answer'));
-                    selectAnswer(qid, answer);
-                }
-            });
-        });
-    }
-
-    // 네비 버튼 갱신
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    if (prevBtn) prevBtn.style.display = index > 0 ? 'inline-block' : 'none';
-    if (nextBtn) {
-        nextBtn.textContent = index === quizData.questions.length - 1 ? '결과 보기' : '다음';
-        // 현재 문항 무응답 시 다음 버튼 비활성화
-        const answered = !!quizAnswers[question.id];
-        nextBtn.disabled = !answered;
-        nextBtn.classList.toggle('disabled', !answered);
-        nextBtn.setAttribute('aria-disabled', String(!answered));
-    }
-}
-
-/**
- * 답변 선택 처리
- * @param {number} questionId - 질문 ID
- * @param {string} answerText - 선택한 답변 텍스트
- */
-export function selectAnswer(questionId, answerText) {
-    quizAnswers[questionId] = answerText;
-    const question = quizData.questions.find(q => q.id === questionId);
-    
-    // UI 업데이트
-    showQuestion(currentQuestionIndex);
-    
-    // 마지막 질문이 아니면 자동으로 다음 질문으로 이동
-    setTimeout(() => {
-        if (currentQuestionIndex < quizData.questions.length - 1) {
-            nextQuestion();
-        }
-    }, 300);
-}
-
-/**
- * 다음 질문으로 이동
- */
-export function nextQuestion() {
-    if (currentQuestionIndex < quizData.questions.length - 1) {
-        currentQuestionIndex++;
-        showQuestion(currentQuestionIndex);
-    } else {
-        showResult();
-    }
-}
-
-/**
- * 이전 질문으로 이동
- */
-export function prevQuestion() {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        showQuestion(currentQuestionIndex);
-    }
-}
-
 /**
  * 퀴즈 결과 표시
  */
@@ -302,13 +300,30 @@ function showResult() {
 
     // 다시 하기 버튼 핸들러
     const restartBtn = document.getElementById('quizRestartBtn');
-    if (restartBtn) restartBtn.addEventListener('click', () => restartQuiz());
+    if (restartBtn) restartBtn.addEventListener('click', restartQuiz);
 
     const questions = document.getElementById('quizQuestions');
     if (questions) questions.style.display = 'none';
     resultContainer.style.display = 'block';
 }
 
+
+// ===== 외부에 노출할 퀴즈 제어 함수 =====
+
+/**
+ * 퀴즈 시작
+ */
+export function startQuiz() {
+    currentQuestionIndex = 0;
+    quizAnswers = {};
+    const intro = document.getElementById('quizIntro');
+    const questions = document.getElementById('quizQuestions');
+    const result = document.getElementById('quizResult');
+    if (intro) intro.style.display = 'none';
+    if (result) result.style.display = 'none';
+    if (questions) questions.style.display = 'block';
+    showQuestion(currentQuestionIndex);
+}
 
 /**
  * 퀴즈 다시 시작

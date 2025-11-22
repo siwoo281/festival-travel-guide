@@ -167,9 +167,9 @@ function buildUserProfile() {
 
     // Q5: 예산
     const budgetAnswer = quizAnswers[5] || '';
-    if (budgetAnswer.includes('200만원 이하')) profile.budget = 'low';
-    else if (budgetAnswer.includes('200~300만원')) profile.budget = 'mid';
-    else if (budgetAnswer.includes('300만원 이상')) profile.budget = 'high';
+    if (budgetAnswer.includes('가성비가 중요해요') || budgetAnswer.includes('알뜰하게')) profile.budget = 'low';
+    else if (budgetAnswer.includes('조금은 투자해서') || budgetAnswer.includes('만족스러운')) profile.budget = 'mid';
+    else if (budgetAnswer.includes('일생일대') || budgetAnswer.includes('아낌없이')) profile.budget = 'high';
 
     // Q4: 시즌
     const seasonAnswer = quizAnswers[4] || '';

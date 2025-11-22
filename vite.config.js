@@ -23,8 +23,8 @@ export default defineConfig({
     },
     server: {
         port: 3008,
-        strictPort: true,
-        host: true,
+        strictPort: false,
+        host: 'localhost',
         open: false,
         hmr: {
             // 프록시/포트 포워딩 환경(브라우저 접근 포트가 서버 포트와 다른 경우) 대응

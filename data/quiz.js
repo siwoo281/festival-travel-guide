@@ -8,15 +8,15 @@ export const quizData = {
             options: [
                 { 
                     text: '짜릿한 해방감과 일상으로부터의 완벽한 탈출', 
-                    scores: { carnival: 3, tomatina: 3, tomorrowland: 3, sonkgran: 2, 'mardi-gras': 3, holi: 2 }
+                    scores: { carnival: 3, tomatina: 3, tomorrowland: 3, sonkgran: 2, 'up-alaaf': 3, holi: 2 }
                 },
                 { 
                     text: '새로운 문화와 전통을 깊이 있게 경험하는 것', 
-                    scores: { oktoberfest: 3, 'cologne-carnival': 3, 'harbin-ice': 2, 'cherry-blossom': 3, 'dia-de-muertos': 3, 'lantern-taiwan': 3, fringe: 2 }
+                    scores: { oktoberfest: 3, 'oktober-alt': 3, 'harbin-ice': 2, 'cherry-blossom': 3, 'dia-de-muertos': 3, 'lantern-taiwan': 3, fringe: 2 }
                 },
                 { 
                     text: '전 세계 사람들과 어울리는 즐거운 만남', 
-                    scores: { tomatina: 2, sonkgran: 3, oktoberfest: 2, tomorrowland: 3, 'mardi-gras': 2, holi: 3, fringe: 2 }
+                    scores: { tomatina: 2, sonkgran: 3, oktoberfest: 2, tomorrowland: 3, 'up-alaaf': 2, holi: 3, fringe: 2 }
                 }
             ]
         },
@@ -28,7 +28,7 @@ export const quizData = {
             options: [
                 { 
                     text: '눈과 귀가 즐거운 화려한 퍼레이드와 쇼', 
-                    scores: { carnival: 3, 'cologne-carnival': 3, 'mardi-gras': 3, fringe: 2, 'dia-de-muertos': 2, 'lantern-taiwan': 1 }
+                    scores: { carnival: 3, 'oktober-alt': 3, 'up-alaaf': 3, fringe: 2, 'dia-de-muertos': 2, 'lantern-taiwan': 1 }
                 },
                 { 
                     text: '음악과 함께 춤추며 에너지를 발산하는 파티', 
@@ -48,7 +48,7 @@ export const quizData = {
             options: [
                 { 
                     text: '물총 싸움, 토마토 던지기 등 온몸으로 즐기는 액티비티', 
-                    scores: { tomatina: 3, sonkgran: 3, holi: 3, carnival: 2, 'cologne-carnival': 2, 'mardi-gras': 1 }
+                    scores: { tomatina: 3, sonkgran: 3, holi: 3, carnival: 2, 'oktober-alt': 2, 'up-alaaf': 1 }
                 },
                 { 
                     text: '세계적인 아티스트의 공연과 예술 작품 감상', 
@@ -56,7 +56,7 @@ export const quizData = {
                 },
                 { 
                     text: '현지 특산 맥주와 음식을 맛보는 미식 탐험', 
-                    scores: { oktoberfest: 3, 'cologne-carnival': 3, 'mardi-gras': 2, tomatina: 1, 'cherry-blossom': 2, 'dia-de-muertos': 2 }
+                    scores: { oktoberfest: 3, 'oktober-alt': 3, 'up-alaaf': 2, tomatina: 1, 'cherry-blossom': 2, 'dia-de-muertos': 2 }
                 }
             ]
         },
@@ -72,11 +72,11 @@ export const quizData = {
                 },
                 { 
                     text: '낭만적인 분위기의 가을 또는 새하얀 겨울', 
-                    scores: { oktoberfest: 3, 'cologne-carnival': 3, 'harbin-ice': 3, 'dia-de-muertos': 3, 'mardi-gras': 3, carnival: 1, 'lantern-taiwan': 1 }
+                    scores: { oktoberfest: 3, 'oktober-alt': 3, 'harbin-ice': 3, 'dia-de-muertos': 3, 'up-alaaf': 3, carnival: 1, 'lantern-taiwan': 1 }
                 },
                 { 
                     text: '계절은 상관없어요, 최고의 축제를 즐길 수만 있다면!', 
-                    scores: { carnival: 1, tomatina: 1, sonkgran: 1, oktoberfest: 1, fringe: 1, tomorrowland: 1, 'cologne-carnival': 1, holi: 1, 'harbin-ice': 1, 'cherry-blossom': 1, 'dia-de-muertos': 1, 'lantern-taiwan': 1, 'mardi-gras': 1 }
+                    scores: { carnival: 1, tomatina: 1, sonkgran: 1, oktoberfest: 1, fringe: 1, tomorrowland: 1, 'oktober-alt': 1, holi: 1, 'harbin-ice': 1, 'cherry-blossom': 1, 'dia-de-muertos': 1, 'lantern-taiwan': 1, 'up-alaaf': 1 }
                 }
             ]
         },
@@ -92,11 +92,11 @@ export const quizData = {
                 },
                 { 
                     text: '조금은 투자해서 만족스러운 여행을 하고 싶어요.', 
-                    scores: { carnival: 2, oktoberfest: 2, fringe: 3, 'cologne-carnival': 3, 'harbin-ice': 3, 'dia-de-muertos': 3, 'lantern-taiwan': 2, 'mardi-gras': 2 }
+                    scores: { carnival: 2, oktoberfest: 2, fringe: 3, 'oktober-alt': 3, 'harbin-ice': 3, 'dia-de-muertos': 3, 'lantern-taiwan': 2, 'up-alaaf': 2 }
                 },
                 { 
                     text: '일생일대의 경험을 위해 아낌없이 투자할래요!', 
-                    scores: { carnival: 3, oktoberfest: 3, tomorrowland: 3, 'harbin-ice': 2, fringe: 2, 'mardi-gras': 1 }
+                    scores: { carnival: 3, oktoberfest: 3, tomorrowland: 3, 'harbin-ice': 2, fringe: 2, 'up-alaaf': 1 }
                 }
             ]
         }
@@ -151,7 +151,7 @@ export const quizData = {
             description: '태국의 새해를 기념하는 송크란 축제는 남녀노소 모두가 함께하는 거대한 물놀이장입니다. 코끼리가 뿜어주는 시원한 물줄기를 맞으며 행운을 빌어보세요.',
             features: ['시원한 물싸움', '더위 탈출', '전통 새해맞이', '클럽 파티']
         },
-        'cologne-carnival': {
+        'oktober-alt': {
             name: '쾰른 카니발 (독일)',
             icon: '🎉',
             reason: '화려한 의상과 신나는 음악이 함께하는 유럽의 전통 카니발을 경험하고 싶으시네요!',
@@ -179,7 +179,7 @@ export const quizData = {
             description: '매년 동화 같은 테마로 꾸며지는 환상적인 무대에서 세계적인 DJ들의 공연을 즐겨보세요. 전 세계 음악 팬들과 함께하는 꿈같은 시간이 될 거예요.',
             features: ['세계 최정상 DJ 라인업', '환상적인 무대 디자인', '글로벌 음악 팬', '캠핑']
         },
-        'mardi-gras': {
+        'up-alaaf': {
             name: '마디그라 (미국)',
             icon: '🎺',
             reason: '재즈 선율과 맛있는 음식이 가득한 미국 남부의 열정을 느끼고 싶으시군요!',

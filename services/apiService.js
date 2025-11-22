@@ -8,10 +8,12 @@ const logger = (typeof window !== 'undefined' && window.logger) ? window.logger 
 const UNSPLASH_ACCESS_KEY = (typeof window !== 'undefined' && window.ENV && window.ENV.UNSPLASH_KEY) ? window.ENV.UNSPLASH_KEY : '';
 
 /**
- * Unsplash 이미지 가져오기 (캐싱 포함)
- * @param {string} query - 검색 쿼리
- * @param {string} fallback - fallback 이미지 URL
- * @returns {Promise<string>}
+ * Unsplash API를 통해 이미지 검색 (메모리 및 localStorage 캐싱 지원)
+ * @param {string} query - 검색 키워드 (예: "paris eiffel tower")
+ * @param {string} fallback - API 실패 시 사용할 fallback 이미지 URL
+ * @returns {Promise<string>} 최적화된 이미지 URL (캐시된 값 또는 새로운 API 결과)
+ * @example
+ * const imageUrl = await fetchUnsplashImage("tokyo festival", "https://example.com/fallback.jpg");
  */
 export async function fetchUnsplashImage(query, fallback) {
     try {
@@ -47,44 +49,63 @@ export async function fetchUnsplashImage(query, fallback) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
-        const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`,
-            { signal: controller.signal }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) throw new Error('API request failed');
-        
-        const data = await response.json();
-        const imageUrl = data.results[0]?.urls?.regular || '';
-        
-        if (imageUrl) {
-            const base = imageUrl.split('?')[0];
-            const rec = { base, ts: now };
-            window.__unsplashCache[query] = rec;
+        try {
+            const response = await fetch(
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`,
+                { signal: controller.signal }
+            );
             
-            try {
-                const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-                store[query] = rec;
-                localStorage.setItem(LS_KEY, JSON.stringify(store));
-            } catch {}
+            clearTimeout(timeoutId);
             
-            return `${base}?w=400&auto=format&q=80&fit=crop`;
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const imageUrl = data.results[0]?.urls?.regular || '';
+            
+            if (imageUrl) {
+                const base = imageUrl.split('?')[0];
+                const rec = { base, ts: now };
+                window.__unsplashCache[query] = rec;
+                
+                try {
+                    const store = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+                    store[query] = rec;
+                    localStorage.setItem(LS_KEY, JSON.stringify(store));
+                } catch (storageError) {
+                    logger.warn('localStorage 저장 실패 (사생활 보호 모드?):', storageError.message);
+                }
+                
+                return `${base}?w=400&auto=format&q=80&fit=crop`;
+            }
+            
+            return optimizeFallbackImage(fallback);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            if (fetchError.name === 'AbortError') {
+                logger.debug(`Unsplash API 타임아웃 (${timeoutMs}ms 초과), fallback 사용`);
+            } else {
+                logger.debug('Unsplash API 실패, fallback 이미지 사용:', fetchError.message);
+            }
+            
+            return optimizeFallbackImage(fallback);
         }
-        
-        return optimizeFallbackImage(fallback);
     } catch (error) {
-        logger.debug('Unsplash API 실패, fallback 이미지 사용:', error.message);
+        logger.error('예상치 못한 오류:', error);
         return optimizeFallbackImage(fallback);
     }
 }
 
 /**
- * 환율 정보 가져오기
- * @param {string} fromCurrency - 기준 통화 (예: KRW)
- * @param {string} toCurrency - 대상 통화 (예: EUR)
- * @returns {Promise<number|null>}
+ * 환율 정보 가져오기 (Exchange Rate API 사용)
+ * @param {string} [fromCurrency='KRW'] - 기준 통화 (ISO 4217 코드)
+ * @param {string} [toCurrency='USD'] - 대상 통화 (ISO 4217 코드)
+ * @returns {Promise<number|null>} 환율 (예: 1 KRW = ? USD), 실패 시 null
+ * @example
+ * const rate = await getExchangeRate('KRW', 'EUR');
+ * // 1 KRW = 0.00075 EUR (예시)
  */
 export async function getExchangeRate(fromCurrency = 'KRW', toCurrency = 'USD') {
     try {

@@ -46,18 +46,12 @@ async function initApp() {
         const startBtn = document.getElementById('startQuizBtn');
         if (startBtn) startBtn.addEventListener('click', startQuiz);
 
-        // 이전/다음/다시시작 버튼은 quiz.js 내부에서 동적으로 관리되므로 여기서 설정하지 않음
+        // 이벤트 위임으로 전역 함수 노출 최소화
+        setupEventDelegation();
 
-        // 전역 함수 노출 (필요한 경우 최소화)
+        // 필수 전역 함수만 노출 (createFestivalCard는 quiz.js에서 사용)
+        window.createFestivalCard = createFestivalCard;
         window.showFestivalDetail = showFestivalDetail;
-        window.createFestivalCard = createFestivalCard; // 퀴즈 모듈에서 사용할 수 있도록 추가
-        // 기획 패널 관련 전역 노출 (카드 내 inline onclick 호환)
-        window.togglePlanner = togglePlanner;
-        window.updatePlanEstimate = updatePlanEstimate;
-        window.savePlan = savePlan;
-        window.copyPlan = copyPlan;
-        window.prefillPlannerFromTier = prefillPlannerFromTier;
-        // (이전 스크립트 전환 과정의 잔여치 제거) 존재하지 않는 전역 함수 노출 제거
 
         // URL 해시 처리
         handleUrlHash();
@@ -104,6 +98,68 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
+}
+
+/**
+ * 이벤트 위임을 통한 전역 함수 노출 최소화
+ */
+function setupEventDelegation() {
+    // 플래너 관련 이벤트 위임
+    document.body.addEventListener('click', (e) => {
+        const target = e.target;
+        
+        // togglePlanner 버튼
+        if (target.closest('[onclick*="togglePlanner"]')) {
+            const festivalId = target.closest('.festival-card')?.dataset.festivalId;
+            const baseDays = target.closest('.festival-card')?.dataset.baseDays || 5;
+            if (festivalId) {
+                e.stopPropagation();
+                togglePlanner(e, festivalId, parseInt(baseDays));
+            }
+        }
+        
+        // updatePlanEstimate
+        if (target.matches('[onchange*="updatePlanEstimate"]') || target.matches('[oninput*="updatePlanEstimate"]')) {
+            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
+            if (festivalId) {
+                updatePlanEstimate(festivalId);
+            }
+        }
+        
+        // savePlan 버튼
+        if (target.matches('[onclick*="savePlan"]')) {
+            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
+            if (festivalId) {
+                e.stopPropagation();
+                savePlan(festivalId);
+            }
+        }
+        
+        // copyPlan 버튼
+        if (target.matches('[onclick*="copyPlan"]')) {
+            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
+            if (festivalId) {
+                e.stopPropagation();
+                copyPlan(festivalId);
+            }
+        }
+        
+        // prefillPlannerFromTier
+        if (target.matches('[onclick*="prefillPlannerFromTier"]')) {
+            const match = target.getAttribute('onclick')?.match(/prefillPlannerFromTier\('([^']+)',\s*'([^']+)'\)/);
+            if (match) {
+                e.stopPropagation();
+                prefillPlannerFromTier(match[1], match[2]);
+            }
+        }
+    });
+    
+    // 전역 함수를 이벤트 핸들러로 노출
+    window.togglePlanner = togglePlanner;
+    window.updatePlanEstimate = updatePlanEstimate;
+    window.savePlan = savePlan;
+    window.copyPlan = copyPlan;
+    window.prefillPlannerFromTier = prefillPlannerFromTier;
 }
 
 function handleUrlHash() {

@@ -101,60 +101,78 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * 이벤트 위임을 통한 전역 함수 노출 최소화
+ * 이벤트 위임을 통한 전역 함수 노출 최소화 (data-* 속성 기반)
  */
 function setupEventDelegation() {
-    // 플래너 관련 이벤트 위임
+    // 플래너 및 카드 관련 이벤트 위임
     document.body.addEventListener('click', (e) => {
-        const target = e.target;
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
         
-        // togglePlanner 버튼
-        if (target.closest('[onclick*="togglePlanner"]')) {
-            const festivalId = target.closest('.festival-card')?.dataset.festivalId;
-            const baseDays = target.closest('.festival-card')?.dataset.baseDays || 5;
-            if (festivalId) {
+        const action = target.dataset.action;
+        const festivalId = target.dataset.festivalId;
+        
+        if (!festivalId) return;
+        
+        switch (action) {
+            case 'detail':
+                // 축제 상세 보기
                 e.stopPropagation();
-                togglePlanner(e, festivalId, parseInt(baseDays));
-            }
+                showFestivalDetail(festivalId, 'overview');
+                break;
+                
+            case 'planner':
+            case 'planner-close':
+                // 패키지 기획 패널 토글
+                e.stopPropagation();
+                const baseDays = parseInt(target.dataset.days || target.closest('.festival-card')?.dataset.baseDays || 5, 10);
+                togglePlanner(e, festivalId, baseDays);
+                break;
+                
+            case 'estimate':
+                // 견적 계산
+                e.stopPropagation();
+                updatePlanEstimate(festivalId);
+                break;
+                
+            case 'save-plan':
+                // 계획 저장
+                e.stopPropagation();
+                savePlan(festivalId);
+                break;
+                
+            case 'copy-plan':
+                // 요약 복사
+                e.stopPropagation();
+                copyPlan(festivalId);
+                break;
         }
-        
-        // updatePlanEstimate
-        if (target.matches('[onchange*="updatePlanEstimate"]') || target.matches('[oninput*="updatePlanEstimate"]')) {
-            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
+    });
+    
+    // 입력 필드 변경 시 견적 자동 계산
+    document.body.addEventListener('change', (e) => {
+        const target = e.target;
+        const plannerPanel = target.closest('.planner-panel');
+        if (plannerPanel && (target.type === 'date' || target.type === 'number' || target.type === 'checkbox')) {
+            const festivalId = plannerPanel.id.replace('planner-', '');
             if (festivalId) {
                 updatePlanEstimate(festivalId);
             }
         }
-        
-        // savePlan 버튼
-        if (target.matches('[onclick*="savePlan"]')) {
-            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
-            if (festivalId) {
-                e.stopPropagation();
-                savePlan(festivalId);
-            }
-        }
-        
-        // copyPlan 버튼
-        if (target.matches('[onclick*="copyPlan"]')) {
-            const festivalId = target.closest('.planner-panel')?.id.replace('planner-', '');
-            if (festivalId) {
-                e.stopPropagation();
-                copyPlan(festivalId);
-            }
-        }
-        
-        // prefillPlannerFromTier
-        if (target.matches('[onclick*="prefillPlannerFromTier"]')) {
-            const match = target.getAttribute('onclick')?.match(/prefillPlannerFromTier\('([^']+)',\s*'([^']+)'\)/);
-            if (match) {
-                e.stopPropagation();
-                prefillPlannerFromTier(match[1], match[2]);
+    });
+    
+    // 카드 키보드 접근성 (Enter 키)
+    document.body.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            const target = e.target.closest('[data-action]');
+            if (target && target.getAttribute('role') === 'button') {
+                e.preventDefault();
+                target.click();
             }
         }
     });
     
-    // 전역 함수를 이벤트 핸들러로 노출
+    // 전역 함수를 이벤트 핸들러로 노출 (하위 호환성)
     window.togglePlanner = togglePlanner;
     window.updatePlanEstimate = updatePlanEstimate;
     window.savePlan = savePlan;

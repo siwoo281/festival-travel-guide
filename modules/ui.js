@@ -7,6 +7,116 @@ import { LazyImageLoader, computeDDay } from '../utils/utils.js';
 let modalTriggerElement = null;
 let budgetChartInstance = null;
 
+// ===== 유틸리티 함수: 데이터 검증 및 안전 처리 =====
+
+/**
+ * HTML 이스케이프 (XSS 방지)
+ * @param {string} text - 이스케이프할 텍스트
+ * @returns {string} 이스케이프된 텍스트
+ */
+function escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+/**
+ * 안전한 숫자 파싱 (음수 방지, 기본값 처리)
+ * @param {any} value - 파싱할 값
+ * @param {number} defaultValue - 기본값
+ * @param {number} min - 최소값
+ * @returns {number}
+ */
+function safeParseInt(value, defaultValue = 0, min = 0) {
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed < min) return defaultValue;
+    return parsed;
+}
+
+/**
+ * 안전한 숫자 파싱 (부동소수점)
+ * @param {any} value - 파싱할 값
+ * @param {number} defaultValue - 기본값
+ * @param {number} min - 최소값
+ * @returns {number}
+ */
+function safeParseFloat(value, defaultValue = 0, min = 0) {
+    const parsed = parseFloat(value);
+    if (isNaN(parsed) || parsed < min) return defaultValue;
+    return parsed;
+}
+
+/**
+ * 안전한 객체 속성 접근
+ * @param {Object} obj - 객체
+ * @param {string} path - 속성 경로 (점 표기법)
+ * @param {any} defaultValue - 기본값
+ * @returns {any}
+ */
+function safeGet(obj, path, defaultValue = null) {
+    if (!obj || typeof obj !== 'object') return defaultValue;
+    const keys = path.split('.');
+    let current = obj;
+    for (const key of keys) {
+        if (current == null || typeof current !== 'object') return defaultValue;
+        current = current[key];
+    }
+    return current !== undefined ? current : defaultValue;
+}
+
+/**
+ * 배열이 비어있지 않은지 확인
+ * @param {Array} arr - 배열
+ * @returns {boolean}
+ */
+function isNonEmptyArray(arr) {
+    return Array.isArray(arr) && arr.length > 0;
+}
+
+/**
+ * Chart.js 로드 확인
+ * @returns {boolean}
+ */
+function isChartJsLoaded() {
+    return typeof window !== 'undefined' && window.Chart && typeof window.Chart === 'function';
+}
+
+/**
+ * DOM 요소가 준비될 때까지 대기
+ * @param {string} id - 요소 ID
+ * @param {Function} callback - 콜백 함수
+ * @param {number} maxAttempts - 최대 시도 횟수
+ */
+function waitForElement(id, callback, maxAttempts = 20) {
+    const element = document.getElementById(id);
+    if (element) {
+        callback(element);
+    } else if (maxAttempts > 0) {
+        setTimeout(() => waitForElement(id, callback, maxAttempts - 1), 50);
+    } else {
+        console.warn(`Element #${id} not found after ${maxAttempts} attempts`);
+    }
+}
+
+/**
+ * 안전한 이미지 URL 생성 (폴백 포함)
+ * @param {string} imageUrl - 이미지 URL
+ * @param {string} fallbackUrl - 폴백 URL
+ * @returns {string}
+ */
+function getSafeImageUrl(imageUrl, fallbackUrl = '/images/placeholder.jpg') {
+    if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.trim()) {
+        return fallbackUrl;
+    }
+    try {
+        return encodeURI(imageUrl.trim());
+    } catch (e) {
+        console.warn('Image URL encoding failed:', e);
+        return fallbackUrl;
+    }
+}
+
 /**
  * 축제별 비즈니스 데이터 생성 (수익성 분석용)
  * @param {string} festivalId - 축제 ID
@@ -238,23 +348,40 @@ function getTimezoneInfo(festival) {
     return '시차 확인 필요';
 }
 
-export function createFestivalCard(festival) {
+export function createFestivalCard(festival, options = {}) {
     const flagUrl = festival.countryCode ? `https://flagcdn.com/w40/${festival.countryCode.toLowerCase()}.png` : '';
     const baseDays = parseInt((festival.duration || '').replace(/[^0-9]/g, '')) || 5;
+    const colClass = options.columnClass || 'col-md-6 col-lg-4';
 
-    let imageUrl = 'https://via.placeholder.com/400x300?text=No+Image';
-    if (festival.image && festival.image.trim()) {
-        imageUrl = festival.image;
-    } else if (festival.fallbackImage) {
-        imageUrl = festival.fallbackImage;
+    // 이미지 URL 처리 개선 (안전한 인코딩)
+    let imageUrl = '';
+    let fallbackUrl = 'https://via.placeholder.com/400x300?text=Image+not+found';
+    
+    try {
+        if (festival.image?.trim()) {
+            imageUrl = encodeURI(festival.image);
+        } else if (festival.fallbackImage?.trim()) {
+            imageUrl = encodeURI(festival.fallbackImage);
+        } else {
+            imageUrl = fallbackUrl;
+        }
+        
+        if (festival.fallbackImage?.trim()) {
+            fallbackUrl = encodeURI(festival.fallbackImage);
+        }
+    } catch (e) {
+        console.warn('Image URL encoding failed:', e);
+        imageUrl = fallbackUrl;
     }
-    // 안전한 로드를 위해 URL 인코딩 (공백/한글 파일명 대응)
-    try { imageUrl = encodeURI(imageUrl); } catch {}
-    const fallbackUrl = encodeURI(festival.fallbackImage || 'https://via.placeholder.com/400x300?text=Image+not+found');
 
     return `
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="festival-card" role="button" tabindex="0" data-festival-id="${festival.id}" data-base-days="${baseDays}" onclick="showFestivalDetail('${festival.id}', 'overview')">
+        <div class="${colClass} mb-4">
+            <div class="festival-card" 
+                 role="button" 
+                 tabindex="0" 
+                 data-festival-id="${festival.id}" 
+                 data-base-days="${baseDays}"
+                 data-action="detail">
                 <div class="festival-card-image">
                     <img src="${imageUrl}" alt="${festival.name}" loading="eager" onerror="this.onerror=null; this.src='${fallbackUrl}'">
                     ${flagUrl ? `<img src="${flagUrl}" alt="국기" class="festival-flag">` : ''}
@@ -277,46 +404,84 @@ export function createFestivalCard(festival) {
                     <div class="festival-footer">
                         <span class="festival-price">${festival.price}</span>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="togglePlanner(event, '${festival.id}', ${baseDays})">패키지 기획</button>
-                            <button class="btn btn-primary btn-sm" aria-label="${festival.name} 상세 보기" onclick="event && event.stopPropagation(); showFestivalDetail('${festival.id}', 'overview');">자세히 보기</button>
+                            <button class="btn btn-outline-secondary btn-sm" 
+                                    data-action="planner" 
+                                    data-festival-id="${festival.id}" 
+                                    data-days="${baseDays}"
+                                    aria-label="${festival.name} 패키지 기획">패키지 기획</button>
+                            <button class="btn btn-primary btn-sm" 
+                                    data-action="detail" 
+                                    data-festival-id="${festival.id}"
+                                    aria-label="${festival.name} 상세 보기">자세히 보기</button>
                         </div>
                     </div>
                 </div>
-                <div id="planner-${festival.id}" class="planner-panel" hidden onclick="event && event.stopPropagation()">
-                    <div class="planner-header">
+                <div id="planner-${festival.id}" 
+                     class="planner-panel" 
+                     aria-hidden="true"
+                     aria-labelledby="planner-header-${festival.id}">
+                    <div class="planner-header" id="planner-header-${festival.id}">
                         <h5><i class="fas fa-suitcase-rolling"></i> ${festival.name} 패키지 기획</h5>
-                        <button class="btn btn-sm btn-light" aria-label="패널 닫기" onclick="togglePlanner(event, '${festival.id}', ${baseDays})"><i class="fas fa-times"></i></button>
+                        <button class="btn btn-sm btn-light" 
+                                aria-label="패널 닫기" 
+                                data-action="planner-close"
+                                data-festival-id="${festival.id}"
+                                data-days="${baseDays}">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                     <div class="planner-body">
                         <div class="row g-3">
                             <div class="col-6">
-                                <label class="form-label">출발일</label>
-                                <input type="date" class="form-control" id="plan-${festival.id}-start" />
+                                <label class="form-label" for="plan-${festival.id}-start">출발일</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="plan-${festival.id}-start"
+                                       aria-label="출발일 선택" />
                             </div>
                             <div class="col-6">
-                                <label class="form-label">여행 일수</label>
-                                <input type="number" class="form-control" id="plan-${festival.id}-days" min="1" value="${baseDays}" />
+                                <label class="form-label" for="plan-${festival.id}-days">여행 일수</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="plan-${festival.id}-days" 
+                                       min="1" 
+                                       value="${baseDays}"
+                                       aria-label="여행 일수" />
                             </div>
                             <div class="col-6">
-                                <label class="form-label">인원</label>
-                                <input type="number" class="form-control" id="plan-${festival.id}-people" min="1" value="2" />
+                                <label class="form-label" for="plan-${festival.id}-people">인원</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="plan-${festival.id}-people" 
+                                       min="1" 
+                                       value="2"
+                                       aria-label="여행 인원" />
                             </div>
                             <div class="col-6">
-                                <label class="form-label">1인 최대 예산 (원)</label>
-                                <input type="number" class="form-control" id="plan-${festival.id}-budget" min="0" placeholder="예: 2500000" />
+                                <label class="form-label" for="plan-${festival.id}-budget">1인 최대 예산 (원)</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="plan-${festival.id}-budget" 
+                                       min="0" 
+                                       placeholder="예: 2500000"
+                                       aria-label="1인 최대 예산" />
                             </div>
                         </div>
                         <hr class="my-3" />
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">포함 항목</label>
-                                <div class="planner-checklist" id="plan-${festival.id}-includes">
+                                <div class="planner-checklist" id="plan-${festival.id}-includes" role="group" aria-label="포함 항목 선택">
                                     ${Object.keys(festival.budget || {}).map(key => {
                                         const mapIcons = { '항공권': 'plane', '숙박': 'hotel', '식사': 'utensils', '입장료': 'ticket', '교통': 'bus', '기타': 'ellipsis-h' };
                                         const icon = mapIcons[key] || 'check';
                                         return `
                                             <label class="form-check form-check-inline">
-                                                <input class="form-check-input" type="checkbox" value="${key}" checked />
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       value="${key}" 
+                                                       checked
+                                                       aria-label="${key} 포함" />
                                                 <span class="form-check-label"><i class="fas fa-${icon}"></i> ${key}</span>
                                             </label>
                                         `;
@@ -325,10 +490,14 @@ export function createFestivalCard(festival) {
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">추천 관광지 선택</label>
-                                <div class="planner-checklist" id="plan-${festival.id}-spots">
+                                <div class="planner-checklist" id="plan-${festival.id}-spots" role="group" aria-label="추천 관광지 선택">
                                     ${(festival.attractions || []).map((a, idx) => `
                                         <label class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="${a.name}" ${idx < 2 ? 'checked' : ''} />
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   value="${a.name}" 
+                                                   ${idx < 2 ? 'checked' : ''}
+                                                   aria-label="${a.name} 관광지 선택" />
                                             <span class="form-check-label">${a.name}</span>
                                         </label>
                                     `).join('')}
@@ -336,11 +505,26 @@ export function createFestivalCard(festival) {
                             </div>
                         </div>
                         <div class="d-flex flex-wrap gap-2 mt-3">
-                            <button class="btn btn-sm btn-primary" onclick="updatePlanEstimate('${festival.id}')"><i class="fas fa-calculator"></i> 견적 계산</button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="savePlan('${festival.id}')"><i class="fas fa-bookmark"></i> 계획 저장</button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="copyPlan('${festival.id}')"><i class="fas fa-share"></i> 요약 복사</button>
+                            <button class="btn btn-sm btn-primary" 
+                                    data-action="estimate"
+                                    data-festival-id="${festival.id}"
+                                    aria-label="견적 계산">
+                                <i class="fas fa-calculator"></i> 견적 계산
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    data-action="save-plan"
+                                    data-festival-id="${festival.id}"
+                                    aria-label="계획 저장">
+                                <i class="fas fa-bookmark"></i> 계획 저장
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    data-action="copy-plan"
+                                    data-festival-id="${festival.id}"
+                                    aria-label="요약 복사">
+                                <i class="fas fa-share"></i> 요약 복사
+                            </button>
                         </div>
-                        <div class="plan-summary mt-3" id="plan-${festival.id}-summary"></div>
+                        <div class="plan-summary mt-3" id="plan-${festival.id}-summary" role="status" aria-live="polite"></div>
                     </div>
                 </div>
             </div>
@@ -477,212 +661,302 @@ export async function populateModalWithFestivalData(festival, festivalId) {
  * @param {string} containerId - 컨테이너 ID
  */
 function displayFestivalOverview(festival, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    const heroImage = festival.image || festival.fallbackImage;
-    const detailedHtml = festival.detailedDescription || `
-        <h4>축제 소개</h4>
-        <p>${festival.description || ''}</p>
-    `;
+        if (!festival || typeof festival !== 'object') {
+            container.innerHTML = '<div class="alert alert-warning">축제 정보를 불러올 수 없습니다.</div>';
+            return;
+        }
 
-    const attractionsHtml = (festival.attractions && festival.attractions.length)
-        ? festival.attractions.map(attraction => `
-            <div class="col-md-6 mb-3">
-                <div class="card h-100">
-                    <img src="${attraction.image}" class="card-img-top" alt="${attraction.name}" style="height: 200px; object-fit: cover;">
-                    <div class="card-body">
-                        <h6 class="card-title mb-1">${attraction.name}</h6>
-                        <p class="card-text small text-muted mb-0">${attraction.description}</p>
-                    </div>
-                </div>
-            </div>
-        `).join('')
-        : '<p>정보를 준비 중입니다.</p>';
+        // 안전한 이미지 URL 처리
+        const heroImage = getSafeImageUrl(festival.image || festival.fallbackImage);
+        const fallbackImage = getSafeImageUrl(festival.fallbackImage, '/images/placeholder.jpg');
+        
+        // XSS 방지: 텍스트는 escapeHtml 사용, HTML은 신뢰할 수 있는 소스에서만
+        const festivalName = escapeHtml(festival.name || '');
+        const festivalDescription = escapeHtml(festival.description || '');
+        const detailedHtml = festival.detailedDescription || `
+            <h4>축제 소개</h4>
+            <p>${festivalDescription}</p>
+        `;
 
-    const localFoodHtml = (festival.localFood && festival.localFood.length)
-        ? `
-        <h5 class="mt-4 mb-3">현지 음식</h5>
-        <div class="row">
-            ${festival.localFood.map(food => `
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        ${food.image ? `<img src="${food.image}" class="card-img-top" alt="${food.name}" style="height: 160px; object-fit: cover;">` : ''}
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h6 class="card-title mb-0">${food.name}</h6>
-                                ${food.mustTry ? '<span class="badge bg-danger">Must Try</span>' : ''}
+        // 주요 관광지 (이미지 폴백 처리, XSS 방지)
+        const attractionsHtml = isNonEmptyArray(festival.attractions)
+            ? festival.attractions.map(attraction => {
+                const attName = escapeHtml(attraction.name || '');
+                const attDesc = escapeHtml(attraction.description || '');
+                const attImage = getSafeImageUrl(attraction.image, fallbackImage);
+                return `
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100" role="article" aria-label="${attName} 관광지">
+                            <img src="${attImage}" 
+                                 class="card-img-top" 
+                                 alt="${attName}" 
+                                 style="height: 200px; object-fit: cover;"
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.src='${fallbackImage}'">
+                            <div class="card-body">
+                                <h6 class="card-title mb-1">${attName}</h6>
+                                <p class="card-text small text-muted mb-0">${attDesc}</p>
                             </div>
-                            <p class="small text-muted mb-1">${food.description || ''}</p>
-                            ${food.price ? `<small class="text-muted">가격: ${food.price}</small>` : ''}
                         </div>
                     </div>
-                </div>
-            `).join('')}
-        </div>`
-        : '';
+                `;
+            }).join('')
+            : '<p class="text-muted">정보를 준비 중입니다.</p>';
 
-    const restaurantsHtml = (festival.restaurants && festival.restaurants.length)
-        ? `
-        <h5 class="mt-4 mb-3">추천 레스토랑</h5>
-        <div class="list-group">
-            ${festival.restaurants.map(r => `
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">${r.name}</h6>
-                        ${r.rating ? `<small class="text-muted">★ ${r.rating}</small>` : ''}
+        // 현지 음식 (이미지 폴백, XSS 방지)
+        const localFoodHtml = isNonEmptyArray(festival.localFood)
+            ? `
+            <h5 class="mt-4 mb-3">현지 음식</h5>
+            <div class="row" role="list" aria-label="현지 음식 목록">
+                ${festival.localFood.map(food => {
+                    const foodName = escapeHtml(food.name || '');
+                    const foodDesc = escapeHtml(food.description || '');
+                    const foodPrice = escapeHtml(food.price || '');
+                    const foodImage = food.image ? getSafeImageUrl(food.image, fallbackImage) : null;
+                    return `
+                        <div class="col-md-6 mb-3" role="listitem">
+                            <div class="card h-100">
+                                ${foodImage ? `
+                                    <img src="${foodImage}" 
+                                         class="card-img-top" 
+                                         alt="${foodName}" 
+                                         style="height: 160px; object-fit: cover;"
+                                         loading="lazy"
+                                         onerror="this.onerror=null; this.src='${fallbackImage}'">
+                                ` : ''}
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="card-title mb-0">${foodName}</h6>
+                                        ${food.mustTry ? '<span class="badge bg-danger" aria-label="추천 음식">Must Try</span>' : ''}
+                                    </div>
+                                    <p class="small text-muted mb-1">${foodDesc}</p>
+                                    ${foodPrice ? `<small class="text-muted">가격: ${foodPrice}</small>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>`
+            : '';
+
+        // 추천 레스토랑 (XSS 방지)
+        const restaurantsHtml = isNonEmptyArray(festival.restaurants)
+            ? `
+            <h5 class="mt-4 mb-3">추천 레스토랑</h5>
+            <div class="list-group" role="list" aria-label="추천 레스토랑 목록">
+                ${festival.restaurants.map(r => {
+                    const rName = escapeHtml(r.name || '');
+                    const rDesc = escapeHtml(r.description || '');
+                    const rType = escapeHtml(r.type || '');
+                    const rPriceRange = escapeHtml(r.priceRange || '');
+                    const rSpecialty = escapeHtml(r.specialty || '');
+                    const rAddress = escapeHtml(r.address || '');
+                    const rRating = safeParseFloat(r.rating, 0);
+                    return `
+                        <div class="list-group-item" role="listitem">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${rName}</h6>
+                                ${rRating > 0 ? `<small class="text-muted" aria-label="평점 ${rRating}점">★ ${rRating.toFixed(1)}</small>` : ''}
+                            </div>
+                            <p class="mb-1 small">${rDesc}</p>
+                            <small class="text-muted">
+                                ${rType ? `${rType} · ` : ''}
+                                ${rPriceRange ? `${rPriceRange} · ` : ''}
+                                ${rSpecialty ? `${rSpecialty} · ` : ''}
+                                ${rAddress}
+                            </small>
+                        </div>
+                    `;
+                }).join('')}
+            </div>`
+            : '';
+
+        // 주변 명소 (XSS 방지)
+        const nearbyHtml = isNonEmptyArray(festival.nearbyAttractions)
+            ? `
+            <h5 class="mt-4 mb-3">주변 명소</h5>
+            <div class="row" role="list" aria-label="주변 명소 목록">
+                ${festival.nearbyAttractions.map(n => {
+                    const nName = escapeHtml(n.name || '');
+                    const nDesc = escapeHtml(n.description || '');
+                    const nDistance = escapeHtml(n.distance || '');
+                    const nTime = escapeHtml(n.time || '');
+                    return `
+                        <div class="col-md-6 mb-2" role="listitem">
+                            <div class="p-2 border rounded h-100">
+                                <strong>${nName}</strong>
+                                ${nDistance ? `<span class="badge bg-light text-dark ms-2" aria-label="거리 ${nDistance}">${nDistance}</span>` : ''}
+                                <p class="small mb-1 mt-2">${nDesc}</p>
+                                ${nTime ? `<small class="text-muted">이동: ${nTime}</small>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>`
+            : '';
+
+        // 비자 정보 (XSS 방지)
+        const visaHtml = festival.visaInfo
+            ? `
+            <div class="card mt-3" role="region" aria-labelledby="visa-info-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="visa-info-title">비자/입국 정보</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>필요 여부:</strong> ${festival.visaInfo.required ? '비자 필요' : '무비자 가능'}</p>
+                    ${festival.visaInfo.details ? `<p class="small text-muted mb-1">${escapeHtml(festival.visaInfo.details)}</p>` : ''}
+                    ${festival.visaInfo.additionalInfo ? `<small class="text-muted">${escapeHtml(festival.visaInfo.additionalInfo)}</small>` : ''}
+                </div>
+            </div>`
+            : '';
+
+        // 긴급 연락처 (XSS 방지)
+        const emergencyHtml = festival.emergency
+            ? `
+            <div class="card mt-3" role="region" aria-labelledby="emergency-info-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="emergency-info-title">긴급 연락처</h6>
+                </div>
+                <div class="card-body">
+                    ${festival.emergency.embassy ? `
+                        <p class="mb-1"><strong>대사관:</strong> ${escapeHtml(festival.emergency.embassy.name || '')}</p>
+                        ${festival.emergency.embassy.phone ? `<small class="text-muted d-block">전화: ${escapeHtml(festival.emergency.embassy.phone)}</small>` : ''}
+                        ${festival.emergency.embassy.emergency ? `<small class="text-muted d-block">긴급: ${escapeHtml(festival.emergency.embassy.emergency)}</small>` : ''}
+                    ` : ''}
+                    ${festival.emergency.police ? `<p class="mb-1"><strong>경찰:</strong> ${escapeHtml(festival.emergency.police)}</p>` : ''}
+                    ${festival.emergency.ambulance ? `<p class="mb-1"><strong>구급:</strong> ${escapeHtml(festival.emergency.ambulance)}</p>` : ''}
+                    ${festival.emergency.hospital ? `<p class="mb-1"><strong>병원:</strong> ${escapeHtml(festival.emergency.hospital)}</p>` : ''}
+                </div>
+            </div>`
+            : '';
+
+        // 빠른 팁 (XSS 방지, 배열 검증)
+        const quickTips = festival.tips || {};
+        const quickTipsHtml = (isNonEmptyArray(quickTips.주의사항) || isNonEmptyArray(quickTips.준비물) || isNonEmptyArray(quickTips.추천))
+            ? `
+            <div class="card mt-3" role="region" aria-labelledby="quick-tips-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="quick-tips-title">빠른 팁</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        ${isNonEmptyArray(quickTips.주의사항) ? `<p class="mb-1"><strong>⚠️ 주의:</strong> ${quickTips.주의사항.slice(0, 3).map(t => escapeHtml(t)).join(', ')}</p>` : ''}
+                        ${isNonEmptyArray(quickTips.준비물) ? `<p class="mb-1"><strong>🎒 준비:</strong> ${quickTips.준비물.slice(0, 3).map(t => escapeHtml(t)).join(', ')}</p>` : ''}
+                        ${isNonEmptyArray(quickTips.추천) ? `<p class="mb-0"><strong>💡 추천:</strong> ${quickTips.추천.slice(0, 3).map(t => escapeHtml(t)).join(', ')}</p>` : ''}
                     </div>
-                    <p class="mb-1 small">${r.description || ''}</p>
-                    <small class="text-muted">
-                        ${r.type ? `${r.type} · ` : ''}
-                        ${r.priceRange ? `${r.priceRange} · ` : ''}
-                        ${r.specialty ? `${r.specialty} · ` : ''}
-                        ${r.address || ''}
-                    </small>
                 </div>
-            `).join('')}
-        </div>`
-        : '';
+            </div>`
+            : '';
 
-    const nearbyHtml = (festival.nearbyAttractions && festival.nearbyAttractions.length)
-        ? `
-        <h5 class="mt-4 mb-3">주변 명소</h5>
-        <div class="row">
-            ${festival.nearbyAttractions.map(n => `
-                <div class="col-md-6 mb-2">
-                    <div class="p-2 border rounded h-100">
-                        <strong>${n.name}</strong>
-                        ${n.distance ? `<span class="badge bg-light text-dark ms-2">${n.distance}</span>` : ''}
-                        <p class="small mb-1 mt-2">${n.description || ''}</p>
-                        ${n.time ? `<small class="text-muted">이동: ${n.time}</small>` : ''}
-                    </div>
+        // 지도 (접근성 개선: title 속성 추가)
+        const mapHtml = festival.mapUrl
+            ? `
+            <div class="card mt-3" role="region" aria-labelledby="map-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="map-title">지도</h6>
                 </div>
-            `).join('')}
-        </div>`
-        : '';
-
-    const visaHtml = (festival.visaInfo)
-        ? `
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">비자/입국 정보</h6>
-            </div>
-            <div class="card-body">
-                <p><strong>필요 여부:</strong> ${festival.visaInfo.required ? '비자 필요' : '무비자 가능'}</p>
-                ${festival.visaInfo.details ? `<p class="small text-muted mb-1">${festival.visaInfo.details}</p>` : ''}
-                ${festival.visaInfo.additionalInfo ? `<small class="text-muted">${festival.visaInfo.additionalInfo}</small>` : ''}
-            </div>
-        </div>`
-        : '';
-
-    const emergencyHtml = (festival.emergency)
-        ? `
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">긴급 연락처</h6>
-            </div>
-            <div class="card-body">
-                ${festival.emergency.embassy ? `
-                    <p class="mb-1"><strong>대사관:</strong> ${festival.emergency.embassy.name || ''}</p>
-                    ${festival.emergency.embassy.phone ? `<small class="text-muted d-block">전화: ${festival.emergency.embassy.phone}</small>` : ''}
-                    ${festival.emergency.embassy.emergency ? `<small class="text-muted d-block">긴급: ${festival.emergency.embassy.emergency}</small>` : ''}
-                ` : ''}
-                ${festival.emergency.police ? `<p class="mb-1"><strong>경찰:</strong> ${festival.emergency.police}</p>` : ''}
-                ${festival.emergency.ambulance ? `<p class="mb-1"><strong>구급:</strong> ${festival.emergency.ambulance}</p>` : ''}
-                ${festival.emergency.hospital ? `<p class="mb-1"><strong>병원:</strong> ${festival.emergency.hospital}</p>` : ''}
-            </div>
-        </div>`
-        : '';
-
-    const quickTips = festival.tips || {};
-    const quickTipsHtml = (quickTips.주의사항 || quickTips.준비물 || quickTips.추천)
-        ? `
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">빠른 팁</h6>
-            </div>
-            <div class="card-body">
-                <div class="small">
-                    ${quickTips.주의사항 ? `<p class="mb-1"><strong>⚠️ 주의:</strong> ${quickTips.주의사항.slice(0,3).join(', ')}</p>` : ''}
-                    ${quickTips.준비물 ? `<p class="mb-1"><strong>🎒 준비:</strong> ${quickTips.준비물.slice(0,3).join(', ')}</p>` : ''}
-                    ${quickTips.추천 ? `<p class="mb-0"><strong>💡 추천:</strong> ${quickTips.추천.slice(0,3).join(', ')}</p>` : ''}
+                <div class="card-body p-0">
+                    <iframe src="${escapeHtml(festival.mapUrl)}" 
+                            width="100%" 
+                            height="220" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="${festivalName} 축제 위치 지도"
+                            aria-label="${festivalName} 축제 위치 지도"></iframe>
                 </div>
-            </div>
-        </div>`
-        : '';
+            </div>`
+            : '';
 
-    const mapHtml = festival.mapUrl ? `
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">지도</h6>
-            </div>
-            <div class="card-body p-0">
-                <iframe src="${festival.mapUrl}" width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
-        </div>` : '';
+        container.innerHTML = `
+            <div class="row">
+                <div class="col-md-8">
+                    ${heroImage ? `
+                    <div class="card mb-3" role="article" aria-label="${festivalName} 축제 개요">
+                        <div style="position:relative; width:100%; padding-top:56.25%; overflow:hidden; background:#f6f7f8;">
+                            <img src="${heroImage}" 
+                                 alt="${festivalName}" 
+                                 style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;"
+                                 loading="eager"
+                                 onerror="this.onerror=null; this.src='${fallbackImage}'">
+                        </div>
+                        <div class="card-body">
+                            ${detailedHtml}
+                            <div class="mt-3 d-flex flex-wrap gap-2" role="list" aria-label="축제 정보 배지">
+                                ${festival.nextDate ? `<span class="badge bg-primary" aria-label="다음 일정 ${escapeHtml(festival.nextDate)}">다음 일정: ${escapeHtml(festival.nextDate)}</span>` : ''}
+                                ${festival.duration ? `<span class="badge bg-secondary" aria-label="기간 ${escapeHtml(festival.duration)}">${escapeHtml(festival.duration)}</span>` : ''}
+                                ${festival.target ? `<span class="badge bg-info text-dark" aria-label="대상 ${escapeHtml(festival.target)}">${escapeHtml(festival.target)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>` : `
+                    <div class="festival-detail-info mb-3">${detailedHtml}</div>`}
 
-    container.innerHTML = `
-        <div class="row">
-            <div class="col-md-8">
-                ${heroImage ? `
-                <div class="card mb-3">
-                    <div style="position:relative; width:100%; padding-top:56.25%; overflow:hidden; background:#f6f7f8;">
-                        <img src="${heroImage}" alt="${festival.name}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div class="card-body">
-                        ${detailedHtml}
-                        <div class="mt-3 d-flex flex-wrap gap-2">
-                            ${festival.nextDate ? `<span class="badge bg-primary">다음 일정: ${festival.nextDate}</span>` : ''}
-                            ${festival.duration ? `<span class="badge bg-secondary">${festival.duration}</span>` : ''}
-                            ${festival.target ? `<span class="badge bg-info text-dark">${festival.target}</span>` : ''}
+                    <h5 class="mt-2 mb-3">축제 하이라이트</h5>
+                    <div class="row" role="list" aria-label="축제 하이라이트">${attractionsHtml}</div>
+
+                    ${localFoodHtml}
+                    ${restaurantsHtml}
+                    ${nearbyHtml}
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card" role="region" aria-labelledby="travel-info-title">
+                        <div class="card-header">
+                            <h6 class="mb-0" id="travel-info-title">여행 정보</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>📍 위치:</strong> ${escapeHtml(festival.location || '-')}</p>
+                            <p><strong>📅 기간:</strong> ${escapeHtml(festival.period || '-')}</p>
+                            <p><strong>⏰ 일정:</strong> ${escapeHtml(festival.duration || '-')}</p>
+                            <p><strong>💰 가격:</strong> ${escapeHtml(festival.price || '-')}</p>
+                            <p><strong>🎯 대상:</strong> ${escapeHtml(festival.target || '-')}</p>
                         </div>
                     </div>
-                </div>` : `
-                <div class="festival-detail-info mb-3">${detailedHtml}</div>`}
 
-                <h5 class="mt-2 mb-3">축제 하이라이트</h5>
-                <div class="row">${attractionsHtml}</div>
+                    ${festival.weather ? `
+                    <div class="card mt-3" role="region" aria-labelledby="weather-info-title">
+                        <div class="card-header">
+                            <h6 class="mb-0" id="weather-info-title">날씨 정보</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>🌡️ 기온:</strong> ${escapeHtml(festival.weather.temperature || '-')}</p>
+                            <p><strong>🌤️ 계절:</strong> ${escapeHtml(festival.weather.season || '-')}</p>
+                            <p><strong>☔ 강수:</strong> ${escapeHtml(festival.weather.precipitation || '-')}</p>
+                            <p><strong>👕 복장:</strong> ${escapeHtml(festival.weather.recommendation || '-')}</p>
+                        </div>
+                    </div>
+                    ` : ''}
 
-                ${localFoodHtml}
-                ${restaurantsHtml}
-                ${nearbyHtml}
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">여행 정보</h6>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>📍 위치:</strong> ${festival.location || '-'}</p>
-                        <p><strong>📅 기간:</strong> ${festival.period || '-'}</p>
-                        <p><strong>⏰ 일정:</strong> ${festival.duration || '-'}</p>
-                        <p><strong>💰 가격:</strong> ${festival.price || '-'}</p>
-                        <p><strong>🎯 대상:</strong> ${festival.target || '-'}</p>
-                    </div>
+                    ${visaHtml}
+                    ${emergencyHtml}
+                    ${quickTipsHtml}
+                    ${mapHtml}
                 </div>
-
-                ${festival.weather ? `
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">날씨 정보</h6>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>🌡️ 기온:</strong> ${festival.weather.temperature}</p>
-                        <p><strong>🌤️ 계절:</strong> ${festival.weather.season}</p>
-                        <p><strong>☔ 강수:</strong> ${festival.weather.precipitation}</p>
-                        <p><strong>👕 복장:</strong> ${festival.weather.recommendation}</p>
-                    </div>
-                </div>
-                ` : ''}
-
-                ${visaHtml}
-                ${emergencyHtml}
-                ${quickTipsHtml}
-                ${mapHtml}
             </div>
-        </div>
-    `;
+        `;
+    } catch (error) {
+        console.error('Error displaying festival overview:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>축제 정보를 불러오는 중 문제가 발생했습니다. 페이지를 새로고침해주세요.</p>
+                    <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">
+                        <i class="fas fa-redo me-1"></i>새로고침
+                    </button>
+                </div>
+            `;
+        }
+    }
 }
 
 export function displayQuickInfo(festival) {
@@ -710,81 +984,110 @@ export function displayQuickInfo(festival) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayTravelTips(tips, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    if (!tips || Object.keys(tips).length === 0) {
-        container.innerHTML = '<div class="alert alert-info">여행 팁 정보를 준비 중입니다.</div>';
-        return;
-    }
+        // 데이터 검증
+        if (!tips || typeof tips !== 'object' || Object.keys(tips).length === 0) {
+            container.innerHTML = '<div class="alert alert-info" role="status">여행 팁 정보를 준비 중입니다.</div>';
+            return;
+        }
 
-    container.innerHTML = `
-        <div class="travel-tips">
-            <h4 class="text-center mb-4">여행 팁 & 주의사항</h4>
-            
-            <div class="row">
-                ${tips.준비물 ? `
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0">🎒 준비물</h6>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                ${tips.준비물.map(item => `
-                                    <li class="mb-2">
-                                        <i class="fas fa-check-circle text-info me-2"></i>
-                                        ${item}
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
+        // 안전한 배열 처리
+        const 준비물 = isNonEmptyArray(tips.준비물) ? tips.준비물 : [];
+        const 주의사항 = isNonEmptyArray(tips.주의사항) ? tips.주의사항 : [];
+        const 추천 = isNonEmptyArray(tips.추천) ? tips.추천 : [];
+
+        const hasAnyTips = 준비물.length > 0 || 주의사항.length > 0 || 추천.length > 0;
+
+        if (!hasAnyTips) {
+            container.innerHTML = '<div class="alert alert-info" role="status">여행 팁 정보를 준비 중입니다.</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="travel-tips" role="region" aria-labelledby="travel-tips-title">
+                <h4 class="text-center mb-4" id="travel-tips-title">여행 팁 & 주의사항</h4>
                 
-                ${tips.주의사항 ? `
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header bg-warning text-white">
-                            <h6 class="mb-0">⚠️ 주의사항</h6>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                ${tips.주의사항.map(item => `
-                                    <li class="mb-2">
-                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                        ${item}
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${tips.추천 ? `
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h6 class="mb-0">💡 추천</h6>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                ${tips.추천.map(item => `
-                                    <li class="mb-2">
-                                        <i class="fas fa-lightbulb text-success me-2"></i>
-                                        ${item}
-                                    </li>
-                                `).join('')}
-                            </ul>
+                <div class="row">
+                    ${준비물.length > 0 ? `
+                    <div class="col-md-4">
+                        <div class="card" role="region" aria-labelledby="preparation-title">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0" id="preparation-title">🎒 준비물</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled" role="list" aria-label="준비물 목록">
+                                    ${준비물.map(item => `
+                                        <li class="mb-2" role="listitem">
+                                            <i class="fas fa-check-circle text-info me-2" aria-hidden="true"></i>
+                                            ${escapeHtml(item)}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
                         </div>
                     </div>
+                    ` : ''}
+                    
+                    ${주의사항.length > 0 ? `
+                    <div class="col-md-4">
+                        <div class="card" role="region" aria-labelledby="warnings-title">
+                            <div class="card-header bg-warning text-white">
+                                <h6 class="mb-0" id="warnings-title">⚠️ 주의사항</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled" role="list" aria-label="주의사항 목록">
+                                    ${주의사항.map(item => `
+                                        <li class="mb-2" role="listitem">
+                                            <i class="fas fa-exclamation-triangle text-warning me-2" aria-hidden="true"></i>
+                                            ${escapeHtml(item)}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${추천.length > 0 ? `
+                    <div class="col-md-4">
+                        <div class="card" role="region" aria-labelledby="recommendations-title">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0" id="recommendations-title">💡 추천</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled" role="list" aria-label="추천 사항 목록">
+                                    ${추천.map(item => `
+                                        <li class="mb-2" role="listitem">
+                                            <i class="fas fa-lightbulb text-success me-2" aria-hidden="true"></i>
+                                            ${escapeHtml(item)}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
-                ` : ''}
             </div>
-        </div>
-    `;
+        `;
+    } catch (error) {
+        console.error('Error displaying travel tips:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>여행 팁 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 /**
@@ -793,90 +1096,125 @@ export function displayTravelTips(tips, containerId) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayPackageInfo(packageDetails, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container || !packageDetails) {
-        if (container) container.innerHTML = '<p class="text-muted">패키지 정보를 준비 중입니다.</p>';
-        return;
-    }
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    container.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h6 class="mb-0">✅ 포함 사항</h6>
+        // 데이터 검증
+        if (!packageDetails || typeof packageDetails !== 'object') {
+            container.innerHTML = '<p class="text-muted" role="status">패키지 정보를 준비 중입니다.</p>';
+            return;
+        }
+
+        // 안전한 배열 처리
+        const included = isNonEmptyArray(packageDetails.included) ? packageDetails.included : [];
+        const excluded = isNonEmptyArray(packageDetails.excluded) ? packageDetails.excluded : [];
+        const departureDates = isNonEmptyArray(packageDetails.departureDates) ? packageDetails.departureDates : [];
+        const groupDiscount = packageDetails.groupDiscount && typeof packageDetails.groupDiscount === 'object' 
+            ? packageDetails.groupDiscount 
+            : null;
+        const productCode = escapeHtml(packageDetails.productCode || 'TBD');
+
+        container.innerHTML = `
+            <div class="row" role="region" aria-label="패키지 정보">
+                <div class="col-md-6">
+                    <div class="card" role="region" aria-labelledby="included-title">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0" id="included-title">✅ 포함 사항</h6>
+                        </div>
+                        <div class="card-body">
+                            ${included.length > 0 ? `
+                                <ul class="list-unstyled" role="list" aria-label="포함 사항 목록">
+                                    ${included.map(item => `
+                                        <li class="mb-2" role="listitem">
+                                            <i class="fas fa-check text-success me-2" aria-hidden="true"></i>
+                                            ${escapeHtml(item)}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<p class="text-muted mb-0">정보 준비 중</p>'}
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            ${packageDetails.included?.map(item => `
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    ${item}
-                                </li>
-                            `).join('') || '<li>정보 준비 중</li>'}
-                        </ul>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card" role="region" aria-labelledby="excluded-title">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0" id="excluded-title">❌ 불포함 사항</h6>
+                        </div>
+                        <div class="card-body">
+                            ${excluded.length > 0 ? `
+                                <ul class="list-unstyled" role="list" aria-label="불포함 사항 목록">
+                                    ${excluded.map(item => `
+                                        <li class="mb-2" role="listitem">
+                                            <i class="fas fa-times text-danger me-2" aria-hidden="true"></i>
+                                            ${escapeHtml(item)}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<p class="text-muted mb-0">정보 준비 중</p>'}
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h6 class="mb-0">❌ 불포함 사항</h6>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            ${packageDetails.excluded?.map(item => `
-                                <li class="mb-2">
-                                    <i class="fas fa-times text-danger me-2"></i>
-                                    ${item}
-                                </li>
-                            `).join('') || '<li>정보 준비 중</li>'}
-                        </ul>
+            ${departureDates.length > 0 ? `
+            <div class="card mt-4" role="region" aria-labelledby="departure-dates-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="departure-dates-title">📅 출발 일정</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row" role="list" aria-label="출발 일정 목록">
+                        ${departureDates.map(date => `
+                            <div class="col-md-4 mb-2" role="listitem">
+                                <span class="badge bg-primary">${escapeHtml(date)}</span>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             </div>
-        </div>
-        
-        ${packageDetails.departureDates ? `
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="mb-0">📅 출발 일정</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    ${packageDetails.departureDates.map(date => `
-                        <div class="col-md-4 mb-2">
-                            <span class="badge bg-primary">${date}</span>
-                        </div>
+            ` : ''}
+            
+            ${groupDiscount ? `
+            <div class="card mt-3" role="region" aria-labelledby="group-discount-title">
+                <div class="card-header">
+                    <h6 class="mb-0" id="group-discount-title">👥 단체 할인</h6>
+                </div>
+                <div class="card-body">
+                    ${Object.entries(groupDiscount).map(([group, discount]) => `
+                        <p><strong>${escapeHtml(group)}:</strong> ${escapeHtml(discount)}</p>
                     `).join('')}
                 </div>
             </div>
-        </div>
-        ` : ''}
-        
-        ${packageDetails.groupDiscount ? `
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">👥 단체 할인</h6>
+            ` : ''}
+            
+            <div class="card mt-3">
+                <div class="card-body text-center">
+                    <p class="mb-2"><strong>상품 코드:</strong> ${productCode}</p>
+                    <button class="btn btn-primary btn-lg" 
+                            data-action="request-quote"
+                            data-product-code="${productCode}"
+                            aria-label="견적 요청하기 - 상품 코드 ${productCode}">
+                        견적 요청하기
+                    </button>
+                </div>
             </div>
-            <div class="card-body">
-                ${Object.entries(packageDetails.groupDiscount).map(([group, discount]) => `
-                    <p><strong>${group}:</strong> ${discount}</p>
-                `).join('')}
-            </div>
-        </div>
-        ` : ''}
-        
-        <div class="card mt-3">
-            <div class="card-body text-center">
-                <p class="mb-2"><strong>상품 코드:</strong> ${packageDetails.productCode || 'TBD'}</p>
-                <button class="btn btn-primary btn-lg" onclick="requestQuote('${packageDetails.productCode}')">
-                    견적 요청하기
-                </button>
-            </div>
-        </div>
-    `;
+        `;
+    } catch (error) {
+        console.error('Error displaying package info:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>패키지 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 export function displayAttractions(attractions) {
@@ -900,86 +1238,159 @@ export function displayAttractions(attractions) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayBudgetChart(budget, totalPrice, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    if (!budget || Object.keys(budget).length === 0) {
-        container.innerHTML = '<div class="alert alert-info">경비 정보를 준비 중입니다.</div>';
-        return;
-    }
+        // 데이터 검증
+        if (!budget || typeof budget !== 'object' || Object.keys(budget).length === 0) {
+            container.innerHTML = '<div class="alert alert-info" role="status">경비 정보를 준비 중입니다.</div>';
+            return;
+        }
 
-    const total = Object.values(budget).reduce((sum, cost) => sum + (parseInt(cost) || 0), 0);
+        // 안전한 숫자 파싱 및 총합 계산
+        const budgetEntries = Object.entries(budget).map(([category, amount]) => {
+            const safeAmount = safeParseInt(amount, 0, 0);
+            return [escapeHtml(category), safeAmount];
+        });
 
-    container.innerHTML = `
-        <div class="budget-analysis">
-            <h4 class="text-center mb-4">예상 여행 경비 분석</h4>
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <canvas id="budgetChart" width="400" height="200"></canvas>
-                </div>
+        const total = budgetEntries.reduce((sum, [, amount]) => sum + amount, 0);
+
+        if (total === 0) {
+            container.innerHTML = '<div class="alert alert-warning" role="alert">경비 데이터가 유효하지 않습니다.</div>';
+            return;
+        }
+
+        // 고유 ID 생성 (축제별로 구분)
+        const festivalId = containerId.includes('-') ? containerId.split('-').pop() : 'default';
+        const chartId = `budgetChart-${festivalId}`;
+
+        container.innerHTML = `
+            <div class="budget-analysis" role="region" aria-labelledby="budget-analysis-title">
+                <h4 class="text-center mb-4" id="budget-analysis-title">예상 여행 경비 분석</h4>
                 
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">경비 내역</h6>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div role="img" aria-label="경비 분포 차트">
+                            <canvas id="${chartId}" width="400" height="200"></canvas>
                         </div>
-                        <div class="card-body">
-                            ${Object.entries(budget).map(([category, amount]) => {
-                                const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                                return `
-                                    <div class="mb-2">
-                                        <div class="d-flex justify-content-between">
-                                            <span>${category}</span>
-                                            <span>₩${parseInt(amount).toLocaleString()}</span>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">경비 내역</h6>
+                            </div>
+                            <div class="card-body" role="list" aria-label="경비 항목 목록">
+                                ${budgetEntries.map(([category, amount]) => {
+                                    const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : '0.0';
+                                    return `
+                                        <div class="mb-2" role="listitem">
+                                            <div class="d-flex justify-content-between">
+                                                <span>${category}</span>
+                                                <span>₩${amount.toLocaleString()}</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;" role="progressbar" 
+                                                 aria-valuenow="${percentage}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100" 
+                                                 aria-label="${category} 비율 ${percentage}%">
+                                                <div class="progress-bar" style="width: ${percentage}%"></div>
+                                            </div>
+                                            <small class="text-muted">${percentage}%</small>
                                         </div>
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar" style="width: ${percentage}%"></div>
-                                        </div>
-                                        <small class="text-muted">${percentage}%</small>
-                                    </div>
-                                `;
-                            }).join('')}
-                            <hr>
-                            <div class="d-flex justify-content-between">
-                                <strong>총 예상 경비</strong>
-                                <strong>₩${total.toLocaleString()}</strong>
+                                    `;
+                                }).join('')}
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>총 예상 경비</strong>
+                                    <strong>₩${total.toLocaleString()}</strong>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
-    // Chart.js로 도넛 차트 생성
-    setTimeout(() => {
-        const ctx = document.getElementById('budgetChart');
-        if (ctx && window.Chart) {
-            if (budgetChartInstance) budgetChartInstance.destroy();
-            budgetChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(budget),
-                    datasets: [{
-                        data: Object.values(budget),
-                        backgroundColor: [
-                            '#FF6384', '#36A2EB', '#FFCE56', 
-                            '#4BC0C0', '#9966FF', '#FF9F40'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
+        // Chart.js 로드 확인 및 차트 생성
+        waitForElement(chartId, (canvasElement) => {
+            if (!isChartJsLoaded()) {
+                console.error('Chart.js is not loaded');
+                container.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>차트를 불러올 수 없습니다</h5>
+                        <p>차트 라이브러리를 불러오는 중 문제가 발생했습니다. 페이지를 새로고침해주세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // 기존 차트 인스턴스 정리
+                if (budgetChartInstance) {
+                    budgetChartInstance.destroy();
+                    budgetChartInstance = null;
+                }
+
+                const ctx = canvasElement.getContext('2d');
+                budgetChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: budgetEntries.map(([category]) => category),
+                        datasets: [{
+                            data: budgetEntries.map(([, amount]) => amount),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', 
+                                '#4BC0C0', '#9966FF', '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                                        return `${label}: ₩${value.toLocaleString()} (${percentage}%)`;
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error creating budget chart:', error);
+                container.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>차트 생성 오류</h5>
+                        <p>차트를 생성하는 중 문제가 발생했습니다.</p>
+                    </div>
+                `;
+            }
+        });
+    } catch (error) {
+        console.error('Error displaying budget chart:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>경비 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
         }
-    }, 100);
+    }
 }
 
 function getTierFeaturesForFestival(festivalId, festival) {
@@ -1020,14 +1431,42 @@ export function togglePlanner(event, festivalId, baseDays) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     const panel = document.getElementById(`planner-${festivalId}`);
     if (!panel) return;
-    const nowHidden = panel.hasAttribute('hidden');
-    document.querySelectorAll('.planner-panel').forEach(p => p.setAttribute('hidden', ''));
-    if (nowHidden) {
+    
+    const isHidden = panel.getAttribute('aria-hidden') === 'true' || panel.hasAttribute('hidden');
+    
+    // 모든 패널 닫기
+    document.querySelectorAll('.planner-panel').forEach(p => {
+        p.setAttribute('hidden', '');
+        p.setAttribute('aria-hidden', 'true');
+    });
+    
+    if (isHidden) {
+        // 패널 열기
         panel.removeAttribute('hidden');
-        try { updatePlanEstimate(festivalId, baseDays); } catch {}
+        panel.setAttribute('aria-hidden', 'false');
+        panel.classList.add('show');
+        
+        try { 
+            updatePlanEstimate(festivalId, baseDays); 
+        } catch (e) {
+            console.warn('Failed to update plan estimate:', e);
+        }
+        
+        // 스크롤 및 포커스 관리
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // 첫 번째 입력 필드에 포커스 (접근성)
+        setTimeout(() => {
+            const firstInput = panel.querySelector('input[type="date"], input[type="number"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }, 100);
     } else {
+        // 패널 닫기
         panel.setAttribute('hidden', '');
+        panel.setAttribute('aria-hidden', 'true');
+        panel.classList.remove('show');
     }
 }
 
@@ -1371,108 +1810,162 @@ function updateDDayBadge(nextDateStr) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayItinerary(festivalId, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    // 우선 순위: 리치 데이터(설명/이미지 포함) -> 기본 데이터
-    let rich = null;
     try {
-        if (typeof window !== 'undefined' && window.itineraryRichData) {
-            rich = window.itineraryRichData[festivalId] || null;
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
         }
-    } catch {}
-    const itinerary = rich || itineraryData[festivalId];
-    if (!itinerary) {
-        container.innerHTML = '<div class="alert alert-info">일정 정보를 준비 중입니다.</div>';
-        return;
-    }
 
-    container.innerHTML = `
-        <div class="itinerary-container">
-            <div class="itinerary-header mb-4 text-center">
-                <h5 class="text-primary mb-2">${itinerary.title}</h5>
-                <p class="text-muted">${itinerary.days.length}일 일정으로 구성되어 있습니다</p>
-            </div>
-            
-            <div class="timeline">
-                ${itinerary.days.map((day, index) => `
-                    <div class="timeline-item ${index === itinerary.days.length - 1 ? 'timeline-item-last' : ''}">
-                        <div class="timeline-marker">
-                            <div class="day-badge">
-                                <span class="day-number">Day</span>
-                                <span class="day-digit">${day.day}</span>
-                            </div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-gradient-primary text-white">
-                                    <h6 class="mb-0">${day.title}</h6>
+        // 데이터 검증 및 가져오기
+        let rich = null;
+        try {
+            if (typeof window !== 'undefined' && window.itineraryRichData) {
+                rich = window.itineraryRichData[festivalId] || null;
+            }
+        } catch (error) {
+            console.warn('Error accessing itineraryRichData:', error);
+        }
+
+        const itinerary = rich || (itineraryData && itineraryData[festivalId]) || null;
+        
+        if (!itinerary || !itinerary.days || !isNonEmptyArray(itinerary.days)) {
+            container.innerHTML = '<div class="alert alert-info" role="status">일정 정보를 준비 중입니다.</div>';
+            return;
+        }
+
+        // 안전한 데이터 처리
+        const itineraryTitle = escapeHtml(itinerary.title || '여행 일정표');
+        const daysCount = itinerary.days.length;
+        const fallbackImage = '/images/placeholder.jpg';
+
+        container.innerHTML = `
+            <div class="itinerary-container" role="region" aria-labelledby="itinerary-title">
+                <div class="itinerary-header mb-4 text-center">
+                    <h5 class="text-primary mb-2" id="itinerary-title">${itineraryTitle}</h5>
+                    <p class="text-muted">${daysCount}일 일정으로 구성되어 있습니다</p>
+                </div>
+                
+                <div class="timeline" role="list" aria-label="여행 일정 타임라인">
+                    ${itinerary.days.map((day, index) => {
+                        const dayTitle = escapeHtml(day.title || `Day ${day.day || index + 1}`);
+                        const dayDescription = escapeHtml(day.description || '');
+                        const dayImage = day.image ? getSafeImageUrl(day.image, fallbackImage) : null;
+                        const dayNumber = safeParseInt(day.day, index + 1, 1);
+                        const isLast = index === itinerary.days.length - 1;
+                        const activities = isNonEmptyArray(day.activities) ? day.activities : [];
+
+                        return `
+                            <div class="timeline-item ${isLast ? 'timeline-item-last' : ''}" role="listitem" aria-label="Day ${dayNumber}">
+                                <div class="timeline-marker">
+                                    <div class="day-badge" aria-label="Day ${dayNumber}">
+                                        <span class="day-number">Day</span>
+                                        <span class="day-digit">${dayNumber}</span>
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    ${day.image || day.description ? `
-                                        <div class="row g-3 align-items-stretch mb-3">
-                                            ${day.image ? `
-                                                <div class="col-md-5">
-                                                    <div class="itinerary-image-wrapper skeleton">
-                                                        <img src="${day.image}" alt="${(day.title || '일정 이미지').replace(/\"/g, '&quot;')}" class="itinerary-image" loading="lazy" decoding="async" referrerpolicy="no-referrer"/>
+                                <div class="timeline-content">
+                                    <div class="card shadow-sm">
+                                        <div class="card-header bg-gradient-primary text-white">
+                                            <h6 class="mb-0">${dayTitle}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            ${dayImage || dayDescription ? `
+                                                <div class="row g-3 align-items-stretch mb-3">
+                                                    ${dayImage ? `
+                                                        <div class="col-md-5">
+                                                            <div class="itinerary-image-wrapper skeleton">
+                                                                <img src="${dayImage}" 
+                                                                     alt="${dayTitle} 일정 이미지" 
+                                                                     class="itinerary-image" 
+                                                                     loading="lazy" 
+                                                                     decoding="async" 
+                                                                     referrerpolicy="no-referrer"
+                                                                     onerror="this.onerror=null; this.src='${fallbackImage}'"/>
+                                                            </div>
+                                                        </div>
+                                                    ` : ''}
+                                                    <div class="col-md-${dayImage ? '7' : '12'}">
+                                                        ${dayDescription ? `<p class="text-muted mb-0">${dayDescription}</p>` : ''}
                                                     </div>
                                                 </div>
                                             ` : ''}
-                                            <div class="col-md-${day.image ? '7' : '12'}">
-                                                ${day.description ? `<p class="text-muted mb-0">${day.description}</p>` : ''}
-                                            </div>
+                                            ${activities.length > 0 ? `
+                                                <div class="activities-timeline" role="list" aria-label="Day ${dayNumber} 활동 목록">
+                                                    ${activities.map((activity, actIndex) => {
+                                                        const actTime = escapeHtml(activity.time || '');
+                                                        const actName = escapeHtml(activity.activity || '');
+                                                        const actLocation = escapeHtml(activity.location || '');
+                                                        const isLastActivity = actIndex === activities.length - 1;
+                                                        return `
+                                                            <div class="activity-item ${isLastActivity ? 'activity-item-last' : ''}" role="listitem">
+                                                                <div class="activity-time">
+                                                                    <span class="badge bg-info" aria-label="시간 ${actTime}">${actTime}</span>
+                                                                </div>
+                                                                <div class="activity-details">
+                                                                    <div class="activity-title">${actName}</div>
+                                                                    ${actLocation ? `
+                                                                        <div class="activity-location">
+                                                                            <i class="fas fa-map-marker-alt text-danger" aria-hidden="true"></i>
+                                                                            <small class="text-muted">${actLocation}</small>
+                                                                        </div>
+                                                                    ` : ''}
+                                                                </div>
+                                                            </div>
+                                                        `;
+                                                    }).join('')}
+                                                </div>
+                                            ` : '<p class="text-muted small">활동 정보를 준비 중입니다.</p>'}
                                         </div>
-                                    ` : ''}
-                                    <div class="activities-timeline">
-                                        ${day.activities.map((activity, actIndex) => `
-                                            <div class="activity-item ${actIndex === day.activities.length - 1 ? 'activity-item-last' : ''}">
-                                                <div class="activity-time">
-                                                    <span class="badge bg-info">${activity.time}</span>
-                                                </div>
-                                                <div class="activity-details">
-                                                    <div class="activity-title">${activity.activity}</div>
-                                                    ${activity.location ? `
-                                                        <div class="activity-location">
-                                                            <i class="fas fa-map-marker-alt text-danger"></i>
-                                                            <small class="text-muted">${activity.location}</small>
-                                                        </div>
-                                                    ` : ''}
-                                                </div>
-                                            </div>
-                                        `).join('')}
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                `).join('')}
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="itinerary-footer mt-4 text-center">
+                    <p class="text-muted" role="note">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        일정은 현지 상황에 따라 변경될 수 있습니다
+                    </p>
+                </div>
             </div>
-            
-            <div class="itinerary-footer mt-4 text-center">
-                <p class="text-muted">
-                    <i class="fas fa-info-circle"></i>
-                    일정은 현지 상황에 따라 변경될 수 있습니다
-                </p>
-            </div>
-        </div>
-    `;
-    // 이미지 스켈레톤 처리 및 페이드인
-    try {
-        const imgs = container.querySelectorAll('.itinerary-image');
-        imgs.forEach(img => {
-            const done = () => {
-                const wrap = img.closest('.itinerary-image-wrapper');
-                if (wrap) wrap.classList.remove('skeleton');
-                img.classList.add('loaded');
-            };
-            if (img.complete) {
-                done();
-            } else {
-                img.addEventListener('load', done, { once: true });
-                img.addEventListener('error', done, { once: true });
-            }
-        });
-    } catch {}
+        `;
+
+        // 이미지 스켈레톤 처리 및 페이드인
+        try {
+            const imgs = container.querySelectorAll('.itinerary-image');
+            imgs.forEach(img => {
+                const done = () => {
+                    const wrap = img.closest('.itinerary-image-wrapper');
+                    if (wrap) wrap.classList.remove('skeleton');
+                    img.classList.add('loaded');
+                };
+                if (img.complete) {
+                    done();
+                } else {
+                    img.addEventListener('load', done, { once: true });
+                    img.addEventListener('error', () => {
+                        img.src = fallbackImage;
+                        done();
+                    }, { once: true });
+                }
+            });
+        } catch (error) {
+            console.warn('Error processing itinerary images:', error);
+        }
+    } catch (error) {
+        console.error('Error displaying itinerary:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>일정 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 /**
@@ -1481,185 +1974,294 @@ export function displayItinerary(festivalId, containerId) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayProductTiers(festivalId, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    const businessData = getBusinessData(festivalId);
-    if (!businessData) {
-        container.innerHTML = '<div class="alert alert-info">상품 구성 정보를 준비 중입니다.</div>';
-        return;
-    }
+        // 데이터 검증
+        if (!festivalId || typeof festivalId !== 'string') {
+            container.innerHTML = '<div class="alert alert-warning" role="alert">축제 ID가 유효하지 않습니다.</div>';
+            return;
+        }
+
+        const businessData = getBusinessData(festivalId);
+        if (!businessData || typeof businessData !== 'object') {
+            container.innerHTML = '<div class="alert alert-info" role="status">상품 구성 정보를 준비 중입니다.</div>';
+            return;
+        }
+        
+        // 안전한 데이터 추출 및 검증
+        const tiers = isNonEmptyArray(businessData.tiers) ? businessData.tiers : [];
+        const totalVariableCost = safeParseInt(businessData.totalVariableCost, 0, 0);
+        const marginRate = safeParseFloat(businessData.marginRate, 0, 0);
+        const breakEvenPoint = safeParseInt(businessData.breakEvenPoint, 0, 0);
+
+        if (tiers.length === 0) {
+            container.innerHTML = '<div class="alert alert-warning" role="alert">상품 티어 정보가 없습니다.</div>';
+            return;
+        }
+
+        // 0으로 나누기 방지
+        const safeMarginRate = isNaN(marginRate) ? 0 : marginRate;
+        const safeBreakEvenPoint = breakEvenPoint > 0 ? breakEvenPoint : null;
     
-    const { tiers, totalVariableCost, marginRate, breakEvenPoint } = businessData;
-    
-    container.innerHTML = `
-        <div class="product-tiers">
-            <h4 class="text-center mb-4">상품 구성 및 수익성 분석</h4>
-            
-            <!-- 수익성 개요 -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        <div class="row text-center">
-                            <div class="col-md-3">
-                                <h6><i class="fas fa-coins"></i> 1인당 변동비용</h6>
-                                <span class="h5 text-danger">₩${totalVariableCost.toLocaleString()}</span>
-                            </div>
-                            <div class="col-md-3">
-                                <h6><i class="fas fa-chart-line"></i> 평균 공헌이익률</h6>
-                                <span class="h5 text-success">${marginRate.toFixed(1)}%</span>
-                            </div>
-                            <div class="col-md-3">
-                                <h6><i class="fas fa-balance-scale"></i> 손익분기점</h6>
-                                <span class="h5 text-primary">${breakEvenPoint || 'N/A'}명</span>
-                            </div>
-                            <div class="col-md-3">
-                                <h6><i class="fas fa-trophy"></i> 최고 이익률</h6>
-                                <span class="h5 text-warning">${(((tiers[2].price - totalVariableCost) / tiers[2].price) * 100).toFixed(1)}%</span>
+        // 최고 이익률 계산 (0으로 나누기 방지)
+        const premiumTier = tiers.length > 2 ? tiers[2] : tiers[tiers.length - 1];
+        const maxProfitRate = premiumTier && premiumTier.price > 0 
+            ? (((premiumTier.price - totalVariableCost) / premiumTier.price) * 100).toFixed(1)
+            : '0.0';
+
+        container.innerHTML = `
+            <div class="product-tiers" role="region" aria-labelledby="product-tiers-title">
+                <h4 class="text-center mb-4" id="product-tiers-title">상품 구성 및 수익성 분석</h4>
+                
+                <!-- 수익성 개요 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info" role="region" aria-label="수익성 개요">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <h6><i class="fas fa-coins" aria-hidden="true"></i> 1인당 변동비용</h6>
+                                    <span class="h5 text-danger">₩${totalVariableCost.toLocaleString()}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6><i class="fas fa-chart-line" aria-hidden="true"></i> 평균 공헌이익률</h6>
+                                    <span class="h5 text-success">${safeMarginRate.toFixed(1)}%</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6><i class="fas fa-balance-scale" aria-hidden="true"></i> 손익분기점</h6>
+                                    <span class="h5 text-primary">${safeBreakEvenPoint || 'N/A'}명</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6><i class="fas fa-trophy" aria-hidden="true"></i> 최고 이익률</h6>
+                                    <span class="h5 text-warning">${maxProfitRate}%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 상품 티어 -->
-            <div class="row">
-                ${tiers.map((tier, index) => {
-                    const profit = tier.price - totalVariableCost;
-                    const profitRate = (profit / tier.price) * 100;
-                    const colors = ['secondary', 'primary', 'warning'];
-                    const colorClass = colors[index];
-                    const isRecommended = index === 1;
-                    
-                    return `
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100 ${isRecommended ? 'border-primary shadow' : ''}">
-                                ${isRecommended ? '<div class="badge bg-primary position-absolute top-0 start-50 translate-middle">추천</div>' : ''}
-                                
-                                <div class="card-header bg-${colorClass} text-white text-center position-relative">
-                                    <h5 class="mb-0">${tier.name}</h5>
-                                    <h4 class="mt-2 mb-1">₩${tier.price.toLocaleString()}</h4>
-                                    <small class="d-block">이익률: ${profitRate.toFixed(1)}%</small>
-                                </div>
-                                
-                                <div class="card-body d-flex flex-column">
-                                    <p class="text-muted mb-3">${tier.description}</p>
+                
+                <!-- 상품 티어 -->
+                <div class="row" role="list" aria-label="상품 티어 목록">
+                    ${tiers.map((tier, index) => {
+                        const tierPrice = safeParseInt(tier.price, 0, 0);
+                        const profit = tierPrice - totalVariableCost;
+                        const profitRate = tierPrice > 0 ? ((profit / tierPrice) * 100).toFixed(1) : '0.0';
+                        const colors = ['secondary', 'primary', 'warning'];
+                        const colorClass = colors[index] || 'secondary';
+                        const isRecommended = index === 1;
+                        const tierName = escapeHtml(tier.name || '');
+                        const tierDesc = escapeHtml(tier.description || '');
+                        const tierFeatures = isNonEmptyArray(tier.features) ? tier.features : [];
+                        
+                        return `
+                            <div class="col-lg-4 col-md-6 mb-4" role="listitem">
+                                <div class="card h-100 ${isRecommended ? 'border-primary shadow' : ''}" 
+                                     aria-label="${tierName} 상품 티어">
+                                    ${isRecommended ? '<div class="badge bg-primary position-absolute top-0 start-50 translate-middle" aria-label="추천 상품">추천</div>' : ''}
                                     
-                                    <h6 class="mb-2">포함 서비스:</h6>
-                                    <ul class="list-unstyled flex-grow-1 mb-3">
-                                        ${tier.features.slice(0, 5).map(feature => `
-                                            <li class="mb-2">
-                                                <i class="fas fa-check text-${colorClass} me-2"></i>
-                                                <small>${feature}</small>
-                                            </li>
-                                        `).join('')}
-                                        ${tier.features.length > 5 ? 
-                                            `<li class="mb-2 text-muted">
-                                                <i class="fas fa-plus me-2"></i>
-                                                <small>+ ${tier.features.length - 5}개 추가 혜택</small>
-                                            </li>` : ''
-                                        }
-                                    </ul>
+                                    <div class="card-header bg-${colorClass} text-white text-center position-relative">
+                                        <h5 class="mb-0">${tierName}</h5>
+                                        <h4 class="mt-2 mb-1">₩${tierPrice.toLocaleString()}</h4>
+                                        <small class="d-block">이익률: ${profitRate}%</small>
+                                    </div>
                                     
-                                    <!-- 수익성 정보 -->
-                                    <div class="border-top pt-3 mb-3">
-                                        <div class="row text-center small">
-                                            <div class="col-6">
-                                                <strong>순이익</strong><br>
-                                                <span class="text-success">₩${profit.toLocaleString()}</span>
-                                            </div>
-                                            <div class="col-6">
-                                                <strong>변동비</strong><br>
-                                                <span class="text-danger">₩${totalVariableCost.toLocaleString()}</span>
+                                    <div class="card-body d-flex flex-column">
+                                        <p class="text-muted mb-3">${tierDesc}</p>
+                                        
+                                        <h6 class="mb-2">포함 서비스:</h6>
+                                        ${tierFeatures.length > 0 ? `
+                                            <ul class="list-unstyled flex-grow-1 mb-3" role="list" aria-label="${tierName} 포함 서비스">
+                                                ${tierFeatures.slice(0, 5).map(feature => `
+                                                    <li class="mb-2" role="listitem">
+                                                        <i class="fas fa-check text-${colorClass} me-2" aria-hidden="true"></i>
+                                                        <small>${escapeHtml(feature)}</small>
+                                                    </li>
+                                                `).join('')}
+                                                ${tierFeatures.length > 5 ? 
+                                                    `<li class="mb-2 text-muted">
+                                                        <i class="fas fa-plus me-2" aria-hidden="true"></i>
+                                                        <small>+ ${tierFeatures.length - 5}개 추가 혜택</small>
+                                                    </li>` : ''
+                                                }
+                                            </ul>
+                                        ` : '<p class="text-muted small">서비스 정보 준비 중</p>'}
+                                        
+                                        <!-- 수익성 정보 -->
+                                        <div class="border-top pt-3 mb-3">
+                                            <div class="row text-center small">
+                                                <div class="col-6">
+                                                    <strong>순이익</strong><br>
+                                                    <span class="text-success">₩${profit.toLocaleString()}</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>변동비</strong><br>
+                                                    <span class="text-danger">₩${totalVariableCost.toLocaleString()}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-${colorClass}" onclick="selectTier('${tier.name}', ${tier.price})">
-                                            <i class="fas fa-shopping-cart me-1"></i> 선택하기
-                                        </button>
-                                        <button class="btn btn-outline-${colorClass} btn-sm" onclick="showTierDetails('${festivalId}', ${index})">
-                                            <i class="fas fa-info-circle me-1"></i> 상세 보기
-                                        </button>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-${colorClass}" 
+                                                    data-action="select-tier"
+                                                    data-tier-name="${tierName}"
+                                                    data-tier-price="${tierPrice}"
+                                                    aria-label="${tierName} 선택하기">
+                                                <i class="fas fa-shopping-cart me-1" aria-hidden="true"></i> 선택하기
+                                            </button>
+                                            <button class="btn btn-outline-${colorClass} btn-sm" 
+                                                    data-action="show-tier-details"
+                                                    data-festival-id="${escapeHtml(festivalId)}"
+                                                    data-tier-index="${index}"
+                                                    aria-label="${tierName} 상세 보기">
+                                                <i class="fas fa-info-circle me-1" aria-hidden="true"></i> 상세 보기
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-            
-            <!-- 수익성 비교 차트 -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>티어별 수익성 비교</h6>
-                        </div>
-                        <div class="card-body">
-                            <div style="height: 300px; position: relative;">
-                                <canvas id="tierProfitChart-${festivalId}"></canvas>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <!-- 수익성 비교 차트 -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-chart-pie me-2" aria-hidden="true"></i>티어별 수익성 비교</h6>
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 300px; position: relative;" role="img" aria-label="티어별 수익성 비교 차트">
+                                    <canvas id="tierProfitChart-${escapeHtml(festivalId)}"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-    
-    // 차트 렌더링 (약간의 지연을 두어 DOM 준비 후 실행)
-    setTimeout(() => renderTierProfitChart(festivalId, tiers, totalVariableCost), 100);
+        `;
+        
+        // 차트 렌더링 (Chart.js 로드 확인 후 실행)
+        waitForElement(`tierProfitChart-${festivalId}`, (canvasElement) => {
+            renderTierProfitChart(festivalId, tiers, totalVariableCost);
+        });
+    } catch (error) {
+        console.error('Error displaying product tiers:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>상품 구성 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 // 티어별 수익성 차트 렌더링
 function renderTierProfitChart(festivalId, tiers, variableCost) {
-    const canvas = document.getElementById(`tierProfitChart-${festivalId}`);
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const profits = tiers.map(tier => tier.price - variableCost);
-    const colors = ['#6c757d', '#007bff', '#ffc107'];
-    
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: tiers.map((tier, index) => {
-                const profitRate = ((tier.price - variableCost) / tier.price * 100).toFixed(1);
-                return `${tier.name} (${profitRate}%)`;
-            }),
-            datasets: [{
-                data: profits,
-                backgroundColor: colors,
-                borderColor: colors.map(color => color + '80'),
-                borderWidth: 2,
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
+    try {
+        if (!isChartJsLoaded()) {
+            console.error('Chart.js is not loaded');
+            const canvas = document.getElementById(`tierProfitChart-${festivalId}`);
+            if (canvas && canvas.parentElement) {
+                canvas.parentElement.innerHTML = `
+                    <div class="alert alert-warning" role="alert">
+                        차트를 불러올 수 없습니다. Chart.js 라이브러리가 로드되지 않았습니다.
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        const canvas = document.getElementById(`tierProfitChart-${festivalId}`);
+        if (!canvas) {
+            console.warn(`Canvas #tierProfitChart-${festivalId} not found`);
+            return;
+        }
+        
+        // 데이터 검증
+        if (!tiers || !isNonEmptyArray(tiers)) {
+            console.warn('Invalid tiers data for chart');
+            return;
+        }
+
+        const safeVariableCost = safeParseInt(variableCost, 0, 0);
+        const ctx = canvas.getContext('2d');
+        
+        // 기존 차트 인스턴스 정리
+        if (canvas.chartInstance) {
+            canvas.chartInstance.destroy();
+        }
+        
+        const profits = tiers.map(tier => {
+            const price = safeParseInt(tier.price, 0, 0);
+            return Math.max(0, price - safeVariableCost);
+        });
+        
+        const colors = ['#6c757d', '#007bff', '#ffc107'];
+        
+        canvas.chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: tiers.map((tier, index) => {
+                    const price = safeParseInt(tier.price, 0, 0);
+                    const profitRate = price > 0 ? ((price - safeVariableCost) / price * 100).toFixed(1) : '0.0';
+                    const tierName = escapeHtml(tier.name || `Tier ${index + 1}`);
+                    return `${tierName} (${profitRate}%)`;
+                }),
+                    datasets: [{
+                        data: profits,
+                        backgroundColor: colors.slice(0, profits.length),
+                        borderColor: colors.slice(0, profits.length).map(color => color + '80'),
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const tierName = tiers[context.dataIndex].name;
-                            const profit = context.parsed;
-                            return `${tierName}: ₩${profit.toLocaleString()} 순이익`;
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const tierIndex = context.dataIndex;
+                                    if (tierIndex >= 0 && tierIndex < tiers.length) {
+                                        const tierName = escapeHtml(tiers[tierIndex].name || `Tier ${tierIndex + 1}`);
+                                        const profit = safeParseInt(context.parsed, 0, 0);
+                                        return `${tierName}: ₩${profit.toLocaleString()} 순이익`;
+                                    }
+                                    return '';
+                                }
+                            }
                         }
                     }
                 }
+            });
+        } catch (error) {
+            console.error('Error rendering tier profit chart:', error);
+            const canvas = document.getElementById(`tierProfitChart-${festivalId}`);
+            if (canvas && canvas.parentElement) {
+                canvas.parentElement.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        차트를 생성하는 중 오류가 발생했습니다.
+                    </div>
+                `;
             }
         }
-    });
-}
+    }
 
 // 티어 상세 정보 모달
 function showTierDetails(festivalId, tierIndex) {
@@ -1754,18 +2356,43 @@ function showTierDetails(festivalId, tierIndex) {
  * @param {string} containerId - 컨테이너 ID
  */
 export function displayBreakEvenAnalysis(festivalId, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+    try {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
-    const businessData = getBusinessData(festivalId);
-    if (!businessData) {
-        container.innerHTML = '<div class="alert alert-info">손익 분기점 데이터를 준비 중입니다.</div>';
-        return;
-    }
+        // 데이터 검증
+        if (!festivalId || typeof festivalId !== 'string') {
+            container.innerHTML = '<div class="alert alert-warning" role="alert">축제 ID가 유효하지 않습니다.</div>';
+            return;
+        }
 
-    const profitData = marketAnalysis.profitability && marketAnalysis.profitability[festivalId];
-    const expectedCustomers = profitData ? profitData.expectedCustomers : 25;
-    const { basePrice, totalVariableCost, fixedCosts, contributionMargin, breakEvenPoint } = businessData;
+        const businessData = getBusinessData(festivalId);
+        if (!businessData || typeof businessData !== 'object') {
+            container.innerHTML = '<div class="alert alert-info" role="status">손익 분기점 데이터를 준비 중입니다.</div>';
+            return;
+        }
+
+        // 안전한 데이터 추출 및 검증
+        const profitData = marketAnalysis && marketAnalysis.profitability && marketAnalysis.profitability[festivalId]
+            ? marketAnalysis.profitability[festivalId]
+            : null;
+        const expectedCustomers = profitData && profitData.expectedCustomers 
+            ? safeParseInt(profitData.expectedCustomers, 25, 0)
+            : 25;
+        
+        const basePrice = safeParseInt(businessData.basePrice, 0, 0);
+        const totalVariableCost = safeParseInt(businessData.totalVariableCost, 0, 0);
+        const fixedCosts = safeParseInt(businessData.fixedCosts, 0, 0);
+        const contributionMargin = safeParseInt(businessData.contributionMargin, 0, 0);
+        const breakEvenPoint = safeParseInt(businessData.breakEvenPoint, 0, 0);
+
+        // 0으로 나누기 방지
+        const contributionMarginRate = basePrice > 0 ? ((contributionMargin / basePrice) * 100).toFixed(1) : '0.0';
+        const safetyMargin = Math.abs(expectedCustomers - breakEvenPoint);
+        const expectedProfit = (expectedCustomers - breakEvenPoint) * contributionMargin;
 
     // 시나리오 분석 데이터
     const scenarios = [
@@ -1790,26 +2417,26 @@ export function displayBreakEvenAnalysis(festivalId, containerId) {
                                 <span class="h5">₩${contributionMargin.toLocaleString()}</span>
                             </div>
                             <div class="col-md-2">
-                                <h6><i class="fas fa-percentage"></i> 공헌이익률</h6>
-                                <span class="h5">${((contributionMargin/basePrice)*100).toFixed(1)}%</span>
+                                <h6><i class="fas fa-percentage" aria-hidden="true"></i> 공헌이익률</h6>
+                                <span class="h5">${contributionMarginRate}%</span>
                             </div>
                             <div class="col-md-2">
-                                <h6><i class="fas fa-users"></i> 손익분기점</h6>
+                                <h6><i class="fas fa-users" aria-hidden="true"></i> 손익분기점</h6>
                                 <span class="h5 text-danger">${breakEvenPoint}명</span>
                             </div>
                             <div class="col-md-2">
-                                <h6><i class="fas fa-target"></i> 예상 고객</h6>
+                                <h6><i class="fas fa-target" aria-hidden="true"></i> 예상 고객</h6>
                                 <span class="h5 text-success">${expectedCustomers}명</span>
                             </div>
                             <div class="col-md-2">
-                                <h6><i class="fas fa-chart-line"></i> 안전 마진</h6>
+                                <h6><i class="fas fa-chart-line" aria-hidden="true"></i> 안전 마진</h6>
                                 <span class="h5 ${expectedCustomers > breakEvenPoint ? 'text-success' : 'text-warning'}">
-                                    ${Math.abs(expectedCustomers - breakEvenPoint)}명
+                                    ${safetyMargin}명
                                 </span>
                             </div>
                             <div class="col-md-2">
-                                <h6><i class="fas fa-coins"></i> 예상 순이익</h6>
-                                <span class="h5 text-primary">₩${((expectedCustomers - breakEvenPoint) * contributionMargin).toLocaleString()}</span>
+                                <h6><i class="fas fa-coins" aria-hidden="true"></i> 예상 순이익</h6>
+                                <span class="h5 text-primary">₩${expectedProfit.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -1832,28 +2459,55 @@ export function displayBreakEvenAnalysis(festivalId, containerId) {
                             <!-- 입력 폼 -->
                             <div class="calculator-inputs mb-3">
                                 <div class="mb-3">
-                                    <label class="form-label">판매 가격 (원)</label>
-                                    <input type="number" class="form-control" id="calc-price-${festivalId}" 
-                                           value="${basePrice}" min="0" step="10000">
+                                    <label class="form-label" for="calc-price-${escapeHtml(festivalId)}">판매 가격 (원)</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="calc-price-${escapeHtml(festivalId)}" 
+                                           value="${basePrice}" 
+                                           min="1" 
+                                           step="10000"
+                                           aria-label="판매 가격 입력"
+                                           required>
+                                    <div class="invalid-feedback">1원 이상의 값을 입력해주세요.</div>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label">변동비용 (원)</label>
-                                    <input type="number" class="form-control" id="calc-variable-${festivalId}" 
-                                           value="${totalVariableCost}" min="0" step="1000">
+                                    <label class="form-label" for="calc-variable-${escapeHtml(festivalId)}">변동비용 (원)</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="calc-variable-${escapeHtml(festivalId)}" 
+                                           value="${totalVariableCost}" 
+                                           min="0" 
+                                           step="1000"
+                                           aria-label="변동비용 입력"
+                                           required>
+                                    <div class="invalid-feedback">0원 이상의 값을 입력해주세요.</div>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label">고정비용 (원)</label>
-                                    <input type="number" class="form-control" id="calc-fixed-${festivalId}" 
-                                           value="${fixedCosts}" min="0" step="10000">
+                                    <label class="form-label" for="calc-fixed-${escapeHtml(festivalId)}">고정비용 (원)</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="calc-fixed-${escapeHtml(festivalId)}" 
+                                           value="${fixedCosts}" 
+                                           min="0" 
+                                           step="10000"
+                                           aria-label="고정비용 입력"
+                                           required>
+                                    <div class="invalid-feedback">0원 이상의 값을 입력해주세요.</div>
                                 </div>
                                 
                                 <div class="d-grid gap-2 mb-3">
-                                    <button class="btn btn-primary" onclick="calculateBreakEven('${festivalId}')">
-                                        <i class="fas fa-play me-1"></i>계산하기
+                                    <button class="btn btn-primary" 
+                                            data-action="calculate-breakeven"
+                                            data-festival-id="${escapeHtml(festivalId)}"
+                                            aria-label="손익분기점 계산하기">
+                                        <i class="fas fa-play me-1" aria-hidden="true"></i>계산하기
                                     </button>
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="resetCalculator('${festivalId}')">
+                                    <button class="btn btn-outline-secondary btn-sm" 
+                                            data-action="reset-calculator"
+                                            data-festival-id="${escapeHtml(festivalId)}"
+                                            aria-label="계산기 초기화">
                                         <i class="fas fa-undo me-1"></i>초기값으로
                                     </button>
                                 </div>
@@ -1869,13 +2523,13 @@ export function displayBreakEvenAnalysis(festivalId, containerId) {
                                 </div>
                                 <div class="result-item">
                                     <span class="result-label">공헌이익률:</span>
-                                    <span class="result-value text-info" id="calc-margin-rate-${festivalId}">
-                                        ${((contributionMargin/basePrice)*100).toFixed(1)}%
+                                    <span class="result-value text-info" id="calc-margin-rate-${escapeHtml(festivalId)}">
+                                        ${contributionMarginRate}%
                                     </span>
                                 </div>
                                 <div class="result-item highlight">
                                     <span class="result-label">손익분기점:</span>
-                                    <span class="result-value text-danger fw-bold" id="calc-breakeven-${festivalId}">
+                                    <span class="result-value text-danger fw-bold" id="calc-breakeven-${escapeHtml(festivalId)}">
                                         ${breakEvenPoint}명
                                     </span>
                                 </div>
@@ -1976,7 +2630,7 @@ export function displayBreakEvenAnalysis(festivalId, containerId) {
                                             <div class="d-flex justify-content-between">
                                                 <span>ROI:</span>
                                                 <span class="${isProfit ? 'text-success' : 'text-danger'}">
-                                                    ${((scenarioProfit / fixedCosts) * 100).toFixed(1)}%
+                                                    ${fixedCosts > 0 ? ((scenarioProfit / fixedCosts) * 100).toFixed(1) : '0.0'}%
                                                 </span>
                                             </div>
                                         </div>
@@ -2021,12 +2675,32 @@ export function displayBreakEvenAnalysis(festivalId, containerId) {
         </div>
     `;
 
-    // 차트 렌더링
-    setTimeout(() => {
-        renderBreakEvenChart(festivalId, businessData, expectedCustomers);
-        renderCostBreakdownChart(festivalId, businessData);
-        setupCalculatorListeners(festivalId);
-    }, 100);
+        // 차트 렌더링 (Chart.js 로드 확인 후 실행)
+        waitForElement(`breakevenChart-${festivalId}`, () => {
+            if (isChartJsLoaded()) {
+                try {
+                    renderBreakEvenChart(festivalId, businessData, expectedCustomers);
+                    renderCostBreakdownChart(festivalId, businessData);
+                    setupCalculatorListeners(festivalId);
+                } catch (error) {
+                    console.error('Error rendering break-even charts:', error);
+                }
+            } else {
+                console.warn('Chart.js is not loaded');
+            }
+        });
+    } catch (error) {
+        console.error('Error displaying break-even analysis:', error);
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>오류가 발생했습니다</h5>
+                    <p>손익분기점 분석 정보를 불러오는 중 문제가 발생했습니다.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 // 손익분기점 차트 렌더링

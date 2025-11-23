@@ -671,6 +671,23 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--shadow-md);
 }
 
+.result-card-container {
+    margin-top: 2rem;
+}
+
+.result-card-container .row {
+    justify-content: center;
+}
+
+.result-card-container .festival-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.result-card-container .festival-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 .question-card {
     margin-bottom: 1.5rem;
 }
@@ -2138,9 +2155,15 @@ h1, h2, h3, h4, h5, h6 {
     animation: fadeIn 0.3s ease-out;
 }
 
-.planner-panel[hidden] {
+.planner-panel[hidden],
+.planner-panel[aria-hidden="true"] {
     display: none;
     animation: fadeOut 0.3s ease-in;
+}
+
+.planner-panel.show {
+    display: flex;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .planner-header {

@@ -99,33 +99,15 @@ function showQuestion(index) {
 
 
 /**
- * 답변 선택 처리 및 다음 단계로 전환
+ * 답변 선택 처리 (자동 전환 제거 - 사용자가 다음 버튼을 클릭해야 넘어감)
  * @param {number} questionId - 질문 ID
  * @param {string} answerText - 선택한 답변 텍스트
  */
 function handleAnswerSelection(questionId, answerText) {
     quizAnswers[questionId] = answerText;
     
+    // 선택한 답변을 표시하고 다음 버튼 활성화
     renderQuestion(quizData.questions[currentQuestionIndex], quizAnswers);
-    
-    const card = document.getElementById('questionCard');
-    
-    setTimeout(() => {
-        if (currentQuestionIndex >= quizData.questions.length - 1) {
-            showResult();
-        } else {
-            currentQuestionIndex++;
-            if (card) {
-                card.classList.add('question-card-transition');
-                setTimeout(() => {
-                    showQuestion(currentQuestionIndex);
-                    card.classList.remove('question-card-transition');
-                }, 150);
-            } else {
-                 showQuestion(currentQuestionIndex);
-            }
-        }
-    }, 300);
 }
 
 /**
@@ -256,22 +238,27 @@ function computeAttributeMatchScore(userProfile, festivalProfile) {
 function showResult() {
     const userProfile = buildUserProfile();
     const finalScores = {};
+    // 데이터가 있는 축제만 점수 계산 (일관성 보장)
     for (const festivalId in festivalProfiles) {
+        if (!festivalsData[festivalId]) continue; // 데이터 없으면 스킵
         finalScores[festivalId] = computeAttributeMatchScore(userProfile, festivalProfiles[festivalId]);
     }
     const sortedFestivals = Object.entries(finalScores).sort((a, b) => b[1] - a[1]);
     const topFestivalId = sortedFestivals[0]?.[0];
     const resultInfo = topFestivalId ? quizData.results[topFestivalId] : null;
-    // 카드 렌더용으로 실제 데이터가 있는 축제를 우선 선택 (추천 순위대로)
-    let topCardFestivalId = null;
-    for (const [fid] of sortedFestivals) {
-        if (festivalsData[fid]) { topCardFestivalId = fid; break; }
+    
+    // TOP 3 추천 축제 데이터 수집
+    const topFestivalsData = [];
+    for (const [fid] of sortedFestivals.slice(0, 3)) {
+        if (festivalsData[fid]) {
+            topFestivalsData.push(festivalsData[fid]);
+        }
     }
-    const topFestivalData = topCardFestivalId ? festivalsData[topCardFestivalId] : null;
-    const isAlternateCard = topFestivalData && topFestivalId && topCardFestivalId !== topFestivalId;
 
     const resultContainer = document.getElementById('quizResult');
     if (!resultContainer) return;
+    
+    // 결과 요약 섹션
     const summaryHtml = resultInfo ? `
         <div class="result-summary text-center">
             <h3>${resultInfo.icon} 당신에게 추천하는 축제는...</h3>
@@ -283,15 +270,31 @@ function showResult() {
             </ul>
         </div>` : '<div class="alert alert-warning text-center">추천 결과를 생성하지 못했습니다.</div>';
 
-    const cardSection = topFestivalData ? `
+    // 추천 여행 상품 섹션 (TOP 3 표시)
+    let cardSection = '';
+    if (topFestivalsData.length > 0) {
+        const topCards = topFestivalsData.map((festival, index) => {
+            // 첫 번째 카드는 더 큰 크기, 나머지는 표준 크기
+            const columnClass = index === 0 ? 'col-md-8 col-lg-6' : 'col-md-6 col-lg-3';
+            return createFestivalCard(festival, { columnClass });
+        }).join('');
+        
+        cardSection = `
         <hr class="my-4">
-        <h4 class="text-center mb-1">추천 여행 상품</h4>
-        ${isAlternateCard ? '<p class="text-center text-muted small mb-3">가장 높은 점수의 축제 카드 데이터가 없어, 유사도가 높은 대체 카드를 표시합니다.</p>' : ''}
+        <h4 class="text-center mb-3">추천 여행 상품 ${topFestivalsData.length > 1 ? 'TOP ' + topFestivalsData.length : ''}</h4>
         <div class="result-card-container">
-             ${createFestivalCard(topFestivalData)}
-        </div>` : `
+            <div class="row justify-content-center">
+                ${topCards}
+            </div>
+        </div>`;
+    } else {
+        cardSection = `
         <hr class="my-4">
-        <div class="alert alert-info text-center">해당 추천 축제의 상세 카드 데이터가 아직 준비되지 않았어요. 상단 요약을 참고해주세요.</div>`;
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> 해당 추천 축제의 상세 카드 데이터가 아직 준비되지 않았어요. 
+            상단 요약을 참고해주세요.
+        </div>`;
+    }
 
     resultContainer.innerHTML = `${summaryHtml}${cardSection}
         <div class="text-center mt-4">
